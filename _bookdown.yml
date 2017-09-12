@@ -1,0 +1,43 @@
+book_filename: "android-development"
+output_dir: build
+language:
+  ui:
+    chapter_name: ["Lecture "]
+edit: https://github.com/info448/book/edit/master/%s
+rmd_files:
+  - index.Rmd
+
+  - part-lectures.Rmd
+  - introduction.Rmd
+  - layouts.Rmd
+  - activities.Rmd
+  # - data-views.Rmd
+  # - material.Rmd
+  # - fragments.Rmd
+  # - intents.Rmd
+  # - menus-dialogs.Rmd
+  # - notifications-settings.Rmd
+  # - loaders.Rmd
+  # - databases-providers.Rmd
+  # - files-permissions.Rmd
+  # - location.Rmd
+  # - services.Rmd
+  # - sensors.Rmd
+  # - animation.Rmd
+  #
+  - part-labs.Rmd
+  # #- debugger.Rmd
+  # - accessibility.Rmd
+  # - styles.Rmd
+  # - viewpager.Rmd
+  # - bluetooth.Rmd
+  # - maps.Rmd
+  # - memory.Rmd
+  # - multitouch.Rmd
+  #
+  - appendix.Rmd
+  - java-review.Rmd
+  - java-swing.Rmd
+  # - java-threads-http.Rmd
+  # - kotlin.Rmd
+  # - publishing.Rmd

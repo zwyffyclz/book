@@ -1,0 +1,40 @@
+---
+lang: en
+title: "Android Development: Lecture Notes"
+author: "[Joel Ross](http://faculty.washington.edu/joelross/)"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+description: 'Lecture Notes for INFO 448: Android Development.'
+github-repo: info448/book
+url: 'https\://info448.github.io/'
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+monofont: "Source Code Pro"
+cover-image: img/android_icon_transparent.png
+favicon: img/android_icon_transparent.png
+params:
+  recent.url: https://canvas.uw.edu/courses/1160645
+  recent.quarter: Autumn 2017
+---
+
+# About this Book {-}
+
+```{r fig.align='center', echo=FALSE, include=identical(knitr:::pandoc_to(), 'html')}
+#to include only in html (centered)
+#knitr::include_graphics('img/cover-img.png', dpi = NA)
+```
+
+This book compiles lecture notes and tutorials for the **INFO 448 Mobile Development: Android** course taught at the [University of Washington Information School](https://ischool.uw.edu/) (most recently in [`r params$recent.quarter`](`r params$recent.url`)).
+The goal of these notes is to provide learning materials for students in the course or anyone else who wishes to learn the basics of developing Android applications. These notes cover the tools, programming languages, and architectures needed to develop applications for the Android platform.
+
+This course expects you to have "journeyman"-level skills in Java (apprenticeship done, not yet master). It uses a number of intermediate concepts (like generics and inheritance) without much fanfare or explanation (though see [the appendix](#java-review)). It also assumes some familiarity with developing interactive applications (e.g., [client-side web applications](https://info448.github.io)).
+
+These notes are primarily adapted from the [official Android developer documentation](https://developer.android.com/develop/index.html), compiling and synthesizing those guidelines for pedagogical purposes (and the author's own interpretation/biases). Please refer to that documentation for the latest information and official guidance.
+
+<!-- TODO: Include previous course offerings? -->
+
+<!-- TODO: Include author contact info? -->
+
+<p class="alert alert-warning">This book is currently in **alpha** status. Visit us on [GitHub](https://github.com/info343/book) to contribute improvements.</p>
+
+![Creative Commons License](img/index/by-nc-sa.png)
+This book is licensed under a [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License](http://creativecommons.org/licenses/by-nc-sa/4.0/).
