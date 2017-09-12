@@ -267,6 +267,23 @@ It is possible to customize the build script by modifying the Gradle script file
 
 <p class="alert alert-info">Note that older Android applications were developed using [Apache ANT](http://ant.apache.org/). The build script was stored in the `build.xml` file, with `build.properties` and `local.properties` containing global and local build settings. While Gradle is more common these days, you should be aware of ANT for legacy purposes.</p>
 
+<div class="alert alert-info">
+It is also possible to use Gradle to [build and install your app from the command-line](http://developer.android.com/tools/building/building-cmdline.html) if you want. You'll need to make sure that you have a device (either physical or virtual) connected and running. Then from inside the project folder, you can build and install your app with
+
+```bash
+# use the provided Gradle wrapper to run the `installDebug` script
+./gradlew installDebug
+```
+
+You can also launch the app from the command-line with the command
+
+```bash
+# use adb to start
+adb shell am start -n package.name/.ActivityName
+```
+
+You can run both these commands in sequence by connecting them with an `&&` (which short-circuits, so it will only launch if the build was successful).</div>
+
 
 ## Logging & ADB `r #[10min]`
 In Android, we can't use `System.out.println()` because we don't actually have a console to print to! More specifically, the device (which is where the application is running) doesn't have access to [standard out](https://en.wikipedia.org/wiki/Standard_streams#Standard_output_.28stdout.29) (`stdout`), which is what Java means by `System.out`.

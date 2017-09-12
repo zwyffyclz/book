@@ -86,7 +86,7 @@ We can quickly add in the event callbacks and `Log.v()` calls to confirm that th
 - `onCreate()`, `onStart()` and `onResume()` are called when the app is instantiated.
 - You can `onPause()` the Activity by dragging down the notification drawer from the top of the screen.
 - You can `onStop()` the Activity by going back to the home screen (click the circle at the bottom).
-- You can `onDestroy()` the Activity by changing the configuration and rotating the phone: click the "rotate" button's on the emulator's toolbar.
+- You can `onDestroy()` the Activity by changing the configuration and rotating the phone: click the "rotate" button on the emulator's toolbar.
 
 
 ### Saving and Restoring Activity State {-}
