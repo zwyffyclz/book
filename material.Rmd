@@ -1,13 +1,12 @@
 # Material Design
-<p class="alert alert-danger">This chapter is out of date and will be updated soon.</p>
 
-This lecture discusses [Material design](https://material.io/guidelines/material-design/introduction.html): the _design language_ created by Google to support mobile user interfaces. The design language focuses on mobile designs (e.g., for Android), but can also be used across platforms (e.g., on the web through [css frameworks]()).
+This lecture discusses [Material design](https://material.io/guidelines/material-design/introduction.html): the _design language_ created by Google to support mobile user interfaces. The design language focuses on mobile designs (e.g., for Android), but can also be used across platforms (e.g., on the web through [css frameworks](https://material.io/components/web/)).
 
-<p class="alert alert-info">This lecture references code found at <https://github.com/info448-s17/lecture14-material>.</p>
+<!-- <p class="alert alert-info">This lecture references code found at <https://github.com/info448-s17/lecture14-material>.</p> -->
 
 <p class="alert alert-danger">This lecture is under development and will be added later.</p>
 
-## Resources:
+## Resources {-}
 Some links and resources as a placeholder
 
 - https://developer.android.com/design/material/index.html

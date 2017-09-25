@@ -73,7 +73,7 @@ This "inflated" View is referred to as the ___root view___: it is the "root" of 
 View rootView = inflater.inflate(R.layout.fragment_layout, container, false);
 ```
 
-- Note that the `inflater` object we are calling `inflate()` on is passed as a parameter to the `onCreateView()` callback. The parameters to the `inflate()` method are: the layout to inflate, the `ViewGroup` (`container`) into which the layout should be inflated (also passed as a parameter to the callback), and whether ot not to "attach" the inflated layout to the container (`false` in this case because the Fragment system already handles the attachment, so the inflate method doesn't need to). The `onCreateView()` callback must `return` the inflated _root view_, so that the system can perform this attachment.
+- Note that the `inflater` object we are calling `inflate()` on is passed as a parameter to the `onCreateView()` callback. The parameters to the `inflate()` method are: the layout to inflate, the `ViewGroup` (`container`) into which the layout should be inflated (also passed as a parameter to the callback), and whether or not to "attach" the inflated layout to the container (`false` in this case because the Fragment system already handles the attachment, so the inflate method doesn't need to). The `onCreateView()` callback must `return` the inflated _root view_, so that the system can perform this attachment.
 
 With the Fragment's layout defined, we can start moving functionality from the Activity into the Fragment.
 

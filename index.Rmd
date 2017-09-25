@@ -26,7 +26,7 @@ params:
 This book compiles lecture notes and tutorials for the **INFO 448 Mobile Development: Android** course taught at the [University of Washington Information School](https://ischool.uw.edu/) (most recently in [`r params$recent.quarter`](`r params$recent.url`)).
 The goal of these notes is to provide learning materials for students in the course or anyone else who wishes to learn the basics of developing Android applications. These notes cover the tools, programming languages, and architectures needed to develop applications for the Android platform.
 
-This course expects you to have "journeyman"-level skills in Java (apprenticeship done, not yet master). It uses a number of intermediate concepts (like generics and inheritance) without much fanfare or explanation (though see [the appendix](#java-review)). It also assumes some familiarity with developing interactive applications (e.g., [client-side web applications](https://info448.github.io)).
+This course expects you to have "journeyman"-level skills in Java (apprenticeship done, not yet master). It uses a number of intermediate concepts (like generics and inheritance) without much fanfare or explanation (though see [the appendix](#java-review)). It also assumes some familiarity with developing interactive applications (e.g., [client-side web applications](https://info343.github.io)).
 
 These notes are primarily adapted from the [official Android developer documentation](https://developer.android.com/develop/index.html), compiling and synthesizing those guidelines for pedagogical purposes (and the author's own interpretation/biases). Please refer to that documentation for the latest information and official guidance.
 
