@@ -23,7 +23,8 @@ If you're going to develop systems for Android, it's good to have some familiari
 
 * **2010**: First [Nexus](https://en.wikipedia.org/wiki/Google_Nexus) device is released: the [Nexus One](https://en.wikipedia.org/wiki/Nexus_One). These are Google-developed "flagship" devices, intended to show off the capabilities of the platform.
 
-	_Specs:_ 1Ghz Scorpion; 512MB memory; .37" at 480x800 AMOLED capacitive touch. For comparison, the [iPhone 7 Plus](https://en.wikipedia.org/wiki/IPhone_7) (2016) has: 2.34Ghz dual core A10 64bit Fusion; 3GB RAM; 5.5" at 1920x1080 display.
+	_Specs:_ 1Ghz Scorpion; 512MB memory; .37" at 480x800 AMOLED capacitive touch.
+	For comparison, the [iPhone 8 Plus](https://en.wikipedia.org/wiki/IPhone_8) (2017) has: ~2.54Ghz hex-core A11 Bionic 64bit; 3GB RAM; 5.5" at 1920x1080 display.
 
 	(As of 2016, this program has been superseded by the <a href="https://en.wikipedia.org/wiki/Pixel_(smartphone)">Pixel</a> range of devices).
 
@@ -75,7 +76,7 @@ Instead, users get updated phones historically by purchasing new devices (every 
 - But what this means for developers is that you can't expect devices to be running the latest version of the operating system&mdash;the range of versions you need to support is much greater than even web development! Android applications must be written for **heterogeneous devices**.
 
 ### Legal Battles {-}
-When discussing Android history, we would be remiss if we didn't mention some of the legal battles surrounding Android. The biggest of these is [**Oracle v Google**](https://www.eff.org/cases/oracle-v-google). In a nutshell, Oracle claims that the _Java API_ is copyrighted (that the method signatures themselves and how they work are protected), so because Google uses that API in Android, Google is violating the copyright. In 2012 a California federal judge decided in Google favor (that one can't copyright an API). This was then reversed by the Federal Circuit court in 2014. The verdict was appealed to the US Supreme Court in 2015, who refused to hear the case. It then went back to the the district court, which ruled in 2016 that Google's use of the API was fair use. This ruling is again under appear. See <https://www.eff.org/cases/oracle-v-google> for a summary, as well as <https://arstechnica.com/series/series-oracle-v-google/>
+When discussing Android history, we would be remiss if we didn't mention some of the legal battles surrounding Android. The biggest of these is [**Oracle v Google**](https://www.eff.org/cases/oracle-v-google). In a nutshell, Oracle claims that the _Java API_ is copyrighted (that the method signatures themselves and how they work are protected), so because Google uses that API in Android, Google is violating the copyright. In 2012 a California federal judge decided in Google favor (that one can't copyright an API). This was then reversed by the Federal Circuit court in 2014. The verdict was appealed to the US Supreme Court in 2015, who refused to hear the case. It then went back to the the district court, which ruled in 2016 that Google's use of the API was fair use. This ruling is again under appeal. See <https://www.eff.org/cases/oracle-v-google> for a summary, as well as <https://arstechnica.com/series/series-oracle-v-google/>
 
 - One interesting side effect of this battle: the Android Nougat and later uses the [OpenJDK](https://openjdk.java.net/) implementation of Java, instead of Google's own in-violation-but-fair-use implementation [see here](https://venturebeat.com/2015/12/29/google-confirms-next-android-version-wont-use-oracles-proprietary-java-apis/). This change _shouldn't_ have any impact on you as a developer, but it's worth keeping an eye out for potentially differences between Android and Java SE.
 
@@ -176,7 +177,7 @@ If you open a layout file (e.g., `activity_main.xml`) in Android Studio, by defa
 
 In the code view, you can see the XML: tags, attributes, values. Elements are nested inside one another. The provided XML code defines a layout (a `<android.support.constraint.ConstraintLayout>`) to organize things, and inside that is a `<TextView>` (a [View](https://developer.android.com/reference/android/view/View.html) representing some text).
 
-- Note that most of the element attributes_ are **namespaced**, e.g. with an `android:` prefix, to avoid any potential conflicts (so we know we're talking about Android's `text` instead of something else).
+- Note that most of the element attributes are **namespaced**, e.g. with an `android:` prefix, to avoid any potential conflicts (so we know we're talking about Android's `text` instead of something else).
 
 The `android:text` attribute of the `<TextView>` contains some text. You can change that and _re-run the app_ to see it update!
 
@@ -247,7 +248,7 @@ To summarize, after writing your Java and XML source code, in order to "build" a
 2. Compile the Java code into JVM bytecode
 3. "dex" the JVM bytecode into Dalvik bytecode
 4. Pack code and other assets into an `.apk`
-5. Cryptographically sign the APK file to authorize it
+5. Cryptographically sign the `.apk` file to authorize it
 6. Transfer the `.apk` to your device, install, and run it!
 
 This is a lot of steps! Luckily the IDE handles it for us using an _automated build tool_ called [**Gradle**](https://gradle.org/). Such tools let you, in effect, specify a single command that will do all of these steps at once.

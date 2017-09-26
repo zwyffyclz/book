@@ -6,6 +6,25 @@ This lecture discusses [Material design](https://material.io/guidelines/material
 
 <p class="alert alert-danger">This lecture is under development and will be added later.</p>
 
+## The Material Design Language `r#[15-20min]`
+//See video: https://www.youtube.com/watch?v=YaG_ljfzeUw (via https://developer.android.com/design/material/index.html)
+
+//summary
+
+
+## Material Themes
+//styles & theme explanation here? (1hr...)
+    //or have that be an appendix / do in lab?
+
+## Animation
+//property animation
+
+
+
+
+
+
+
 ## Resources {-}
 Some links and resources as a placeholder
 
