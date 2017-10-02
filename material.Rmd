@@ -16,6 +16,8 @@ This lecture discusses [Material design](https://material.io/guidelines/material
 //styles & theme explanation here? (1hr...)
     //or have that be an appendix / do in lab?
 
+//material icons
+
 ## Animation
 //property animation
 

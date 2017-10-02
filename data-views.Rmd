@@ -127,7 +127,7 @@ Because the last two _listener_ objects are usually defined with anonymous class
 //silly example: get 20 random dinosaur names
 String url = "http://dinoipsum.herokuapp.com/api/?format=text&words=20&paragraphs=1";
 
-Request myRequest = new StringRequest(Request.Method.GET, urlString,
+Request myRequest = new StringRequest(Request.Method.GET, url,
 		new Response.Listener<String>() {
 			public void onResponse(String response) {
 				Log.v(TAG, response);
