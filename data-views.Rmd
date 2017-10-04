@@ -185,26 +185,103 @@ If you are going to make multiple network requests for your application (which y
 
 Instead, the best practice is to use the [Singleton Design Pattern](https://developer.android.com/training/volley/requestqueue.html#singleton) to ensure that your entire application only uses a _single_ RequestQueue.
 
-To do this, you will want to create an entire class (e.g., `RequestSingleton`) that will control access to a single instance of the Volley `RequestQueue`:
+To do this, you will want to create an entire class (e.g., `RequestSingleton`) that will only ever be instantiated once (it will be a "singleton"). Since the Volley `RequestQueue` is controlled by this singleton, it means there will only ever be one `RequestQueue`.
 
 ```java
 public class RequestSingleton { //make static if an inner class!
 
-	//the single RequestQueue; static so it exists outside of the object
-	private static RequestQueue requestQueue = null;
+	//the single instance of this singleton
+	private static RequestSingleton instance;
 
-	private RequestSingleton(){} //private constructor; cannot instantiate directly
+	private RequestQueue requestQueue = null; //the singleton's RequestQueue
 
-	//call this "factory" method to access the Volley RequestQueue
-	public static RequestQueue getInstance(Context ctx) {
-		//only create if it doesn't exist yet
-		if(requestQueue == null){
-			requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
+	//private constructor; cannot instantiate directly
+	private RequestSingleton(Context ctx){
+		//create the requestQueue
+		this.requestQueue = Volley.newRequestQueue(ctx.getApplicationContext());
+	}
+
+	//call this "factory" method to access the Singleton
+	public static RequestSingleton getInstance(Context ctx) {
+		//only create the singleton if it doesn't exist yet
+		if(this.instance == null){
+			instance = new RequestSingleton(ctx);
 		}
 
-		return requestQueue; //return the single object
+		return instance; //return the singleton object
 	}
+
+	//get queue from singleton for direct action
+    public RequestQueue getRequestQueue() {
+        return this.requestQueue;
+    }
 }
 ```
 
 This structure will let you make multiple network requests from multiple components of your app, but without trying to have multiple "dispatchers" taking up memory.
+
+### Downloading Images {-}
+In addition to downloading text or JSON data via HTTP requests, Volley is also able to support downloading _images_ to be shown in your app.
+
+In general, handling images in Android is a difficult task. Images are large files (often multiple megabytes in size) that may require extensive and lingering data transfer to download and require processor-intensive decoding in order to be displayed. Since mobile devices are _resource constrained_ (particularly in memory), trying to download and display lots of images&mdash;say in a scrollable list&mdash;can quickly cause problems. See [Handling Bitmaps](https://developer.android.com/topic/performance/graphics/index.html) and [Loading Large Bitmaps Efficiently](https://developer.android.com/topic/performance/graphics/load-bitmap.html) for some examples of the complexity needed to work with images.
+
+Volley provides some support to make downloading and processing images easier. In particular, it provides built-in support for _network management_ (so that data transfers are most efficiently optimized), _caching_ (so you don't try to download the same image twice), and for easily _displaying_ network-loaded images.
+
+<p class="alert alert-info">The other popular image-management libraries are [Glide](https://github.com/bumptech/glide), Square's [Picasso](http://square.github.io/picasso/), and Facebook's [Fresco](https://github.com/facebook/fresco). Google recommends using Glide for doing complex image work. However, if Volley's image loading is sufficient for your task, that allows you to only need to work with a single library and networking queue.</p>
+
+In order to effectively download images with Volley, you need to set up an [`ImageLoader`](https://afzaln.com/volley/com/android/volley/toolbox/ImageLoader.html). This object will handling downloading remote images as well as _caching_ them for the future.
+
+To instantiate an `ImageLoader`, you need to provide a `RequestQueue` as well as an `ImageCache` object that represents how image data should be cached (e.g., in memory, on disk, etc.). The Volley documentation suggests using a `LruCache` object for caching to memory (though you can use a `DiskBasedCache` as well):
+
+```java
+//instantiate the image loader
+//params are the requestQueue and the Cache
+ImageLoader imageLoader = new ImageLoader(requestQueue,
+		new ImageLoader.ImageCache() {  //define an anonymous Cache object
+			//the cache instance variable
+			private final LruCache<String, Bitmap> cache = new LruCache<String, Bitmap>(20);
+
+			//method for accessing the cache
+			@Override
+			public Bitmap getBitmap(String url) {
+				return cache.get(url);
+			}
+
+			//method for storing to the cache
+			@Override
+			public void putBitmap(String url, Bitmap bitmap) {
+				cache.put(url, bitmap);
+			}
+		});
+```
+
+- It's a good idea to make this `ImageLoader` an instance variable of the `RequestSingleton`.
+
+Once you have the `ImageLoader`, you can use it to download an image by calling it's <a href="https://afzaln.com/volley/com/android/volley/toolbox/ImageLoader.html#get(java.lang.String, com.android.volley.toolbox.ImageLoader.ImageListener)">`get()`</a> method, specifying a callback listener that will be executed when the image is finished downloading.
+
+However, you almost always want to download an image in order to display it. Volley makes this easy by providing a customized View called [`NetworkImageView`](https://afzaln.com/volley/com/android/volley/toolbox/NetworkImageView.html). A `NetworkImageView` is able to handle the downloading of its source image on its own, integrating that process into the Activity's lifecycle (e.g., so it won't download when the View isn't displayed).
+
+You declare a `NetworkImageView` in the layout XML in the same way you would specify an `ImageView`:
+
+```xml
+<com.android.volley.toolbox.NetworkImageView
+	android:id="@+id/img_remote"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:scaleType="fitXY"
+	/>
+```
+- The [`android:scaleType`](https://developer.android.com/reference/android/widget/ImageView.ScaleType.html) attribute indicates how the image should be scaled to fit the View.
+
+In order to download an image into this View, you call the `setImageUrl()` method on the View from within your Java, specify the image url to load into the View and the `ImageLoader` to use for this network access:
+
+```java
+NetworkImageView netView = (NetworkImageView)findViewById(R.id.img_remote);
+netView.setImageUrl("https://ischool.uw.edu/fb-300x300.png", imageLoader);
+```
+
+And that will let you download and show images from the Internet (without needing to make them into a `drawable` resource)!
+
+
+<!-- ## RecyclerView
+The `ListView` is an effective way of creating scrollable lists of data. However, creating lists that run  -->

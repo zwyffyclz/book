@@ -249,7 +249,7 @@ There are many other layouts as well, though we won't go over them all in depth.
 
 - [GridLayout](https://developer.android.com/reference/android/widget/GridLayout.html) arranges Views into a Grid. It is similar to LinearLayout, but places elements into a grid rather than into a line.
 
-	Note that this is different than a [Grid_View_](https://developer.android.com/guide/topics/ui/layout/gridview.html), which is a scrollable, adaptable list (similar to a ListView, which is discussed in the next lecture).
+	Note that this is different than a [Grid<em>View</em>](https://developer.android.com/guide/topics/ui/layout/gridview.html), which is a scrollable, adaptable list (similar to a ListView, which is discussed in the next lecture).
 
 - [TableLayout](http://developer.android.com/guide/topics/ui/layout/grid.html) acts like an HTML table: you define `TableRow` layouts which can be filled with content. This View is not commonly used.
 
