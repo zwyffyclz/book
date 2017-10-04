@@ -204,7 +204,7 @@ public class RequestSingleton { //make static if an inner class!
 	//call this "factory" method to access the Singleton
 	public static RequestSingleton getInstance(Context ctx) {
 		//only create the singleton if it doesn't exist yet
-		if(this.instance == null){
+		if(instance == null){
 			instance = new RequestSingleton(ctx);
 		}
 
@@ -215,6 +215,11 @@ public class RequestSingleton { //make static if an inner class!
     public RequestQueue getRequestQueue() {
         return this.requestQueue;
     }
+
+	//convenience wrapper method
+	public <T> void add(Request<T> req) {
+		requestQueue.add(req);
+	}
 }
 ```
 
