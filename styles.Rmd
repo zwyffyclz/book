@@ -81,6 +81,29 @@ There are a bunch of these, all of which are defined in the [R.style](https://de
 ___Practice: Define a new style___ for the `Button` at the bottom of the screen that inherits from the built-in `MediaButton` style (but give it a text size of `22sp`). What does the inheritance do to the appearance?
 
 
+### Styles for Text Views
+If you define text appearance such as font size or text color over and over again in your layouts, use `TextAppearance` instead. They are styles, and Android already defined some for you to use and override. This helps tremendously in keeping your view code clean and structured. Moreover, `TextAppearance` allows you to add two styles to any class that extends `TextView`. That means that you will use `TextAppearance` to modify how the text looks on `EditText`, `Button`, etc..
+
+When you define `TextAppearance`s, use any appropriate `TextAppearance` as the parent and define all attributes needed:
+
+```xml
+<style name="MyTextAppearance" parent="TextAppearance.AppCompat">
+    <item name="android:textColor">#0F0</item>
+    ...
+</style>
+```
+
+Once you define a `TextAppearance`, you can use it in any `TextView` with the `android:TextAppearance` attribute:
+
+```xml
+<TextView
+    style="@style/MyStyle"
+    android:TextAppearance="@style/MyTextAppearance" />
+```
+
+Not as good as true multiple styles, but you can apply **two** styles for one view with `TextAppearance` flexibly.
+
+
 ## Themes
 Unlike CSS, Android styling is _NOT_ inherited by child elements: that is, if you apply a style to a `ViewGroup` (a layout), that style will not be applied to all the child components of that `ViewGroup`. Thus you can't "style" a layout and have the styling rule apply throughout the layout.
 
