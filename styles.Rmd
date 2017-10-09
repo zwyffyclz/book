@@ -1,18 +1,16 @@
 # Styles & Themes
-<p class="alert alert-danger">This chapter is out of date and will be updated soon.</p>
-
 In this chapter you will learn to use Android [**Styles & Themes**](https://developer.android.com/guide/topics/ui/themes.html) to easily modify and _abstract_ the appearance of an app's user interfaces&mdash;that is, the XML resource attributes that define what your `Views` look like.
 
 This tutorial will walk you through creating and using styles to modify views, though you should also reference the [official documentation](https://developer.android.com/guide/topics/ui/themes.html) for more details and examples.
 
-<p class="alert alert-info">The code for this tutorial can be found at <https://github.com/info448-s17/lab-styles>.</p>
+<p class="alert alert-info">The code for this tutorial can be found at <https://github.com/info448/lab-styles>.</p>
 
 You will be working almost exclusively with the **XML resources** (e.g., `res/layout/activity_main.xml`) in the provided code, so make sure to look those over before you begin. The main layout describes a very simple screen showing a pile of `TextViews` organized in a `RelativeLayout`.
 
 ## Defining Styles
 If you look at the `TextViews`, you'll see that they share a lot of the same attributes: text sizing, width and height, boldness, etc. If you decided that all of the text should be bigger (e.g., for readability), then you'd need to change 6 different attributes&mdash;which is a lot of redundant work.
 
-Enter [**Styles**](http://developer.android.com/guide/topics/ui/themes.html#DefiningStyles). Styles ___encapsulate a collection of XML properties___, allowing you to define a set of properties once and then use a single attribute to apply all of those properties to a view. This provides _almost_ the same functionality as a [CSS](https://en.wikipedia.org/wiki/Cascading_Style_Sheets) rule describing a class decalaration, but without the "cascading" part.
+Enter [**Styles**](http://developer.android.com/guide/topics/ui/themes.html#DefiningStyles). Styles ___encapsulate a collection of XML properties___, allowing you to define a set of properties once and then use a single attribute to apply all of those properties to a view. This provides _almost_ the same functionality as a [CSS](https://en.wikipedia.org/wiki/Cascading_Style_Sheets) rule describing a class declaration, but without the "cascading" part.
 
 Styles are themselves defined as an [XML resource](https://developer.android.com/guide/topics/resources/style-resource.html)&mdsah;specifically a `<style>` element inside the **`res/values/styles.xml`** file.
 
@@ -39,7 +37,7 @@ ___Practice: Define a new style___ (e.g., `TextStyle`) that specifies the attrib
 - After you've done that, go ahead and change the size of _all_ the `TextViews` to be `22sp`. You should be able to make this change in exactly one place!
 
 
-### Style Inheritance
+### Style Inheritance {-}
 This is a good start, but we still have some duplicated attributes&mdash;in particular, the "labels" share a couple of attributes (e.g., they are all bold). Since each View can only have a single style and there is no cascading, if we wanted to create a separate `LabelStyle` style, it would end up duplicating some attributes of the `TextStyle` (size and color). Ideally we would like to not have to redefine a style if it only changes a little bit.
 
 Luckily, while styles don't cascade, they can [**inherit**](https://developer.android.com/guide/topics/ui/themes.html#Inheritance) items from one another (a la Java inheritance, e.g., `extends`). We can establish this inheritance relationship by specifying the `parent` attribute for the `<style>`, and having it reference (with `@`) the "parent" style:
@@ -65,7 +63,7 @@ Define _another_ style (e.g., `Gold`) that **inherits** from your `Label`'s styl
 <p class="alert alert-warning">It is best to utilize styles for elements that share **semantic meaning**, not just specific attributes! For example, buttons and labels that will be duplicated, headers shared across screens, etc. This will help you avoid needing to frequently change or overwrite styles in the future just because you want to make one button look different; changes to the style should reflect changes to the appearance of semantic elements. This is the same guideline that is used for determining whether you should define a CSS class or not! [This blog post](http://blog.danlew.net/2014/11/19/styles-on-android/) has a good summary.</p>
 
 
-### Built-in Styles
+### Built-in Styles {-}
 Android also includes a large number of built-in platform styles that we can apply and/or inherit from. These **must** be inherited via the `parent` attribute (you can't use dot notation for them). They are referenced with the format:
 
 ```xml
@@ -81,19 +79,18 @@ There are a bunch of these, all of which are defined in the [R.style](https://de
 ___Practice: Define a new style___ for the `Button` at the bottom of the screen that inherits from the built-in `MediaButton` style (but give it a text size of `22sp`). What does the inheritance do to the appearance?
 
 
-### Styles for Text Views
-If you define text appearance such as font size or text color over and over again in your layouts, use `TextAppearance` instead. They are styles, and Android already defined some for you to use and override. This helps tremendously in keeping your view code clean and structured. Moreover, `TextAppearance` allows you to add two styles to any class that extends `TextView`. That means that you will use `TextAppearance` to modify how the text looks on `EditText`, `Button`, etc..
+### Styles for Text Views {-}
+If your style primarily is defining text appearance attributes such as font size or text color, you alternatively have the option to utilize the [`android:textAppearance`](https://developer.android.com/reference/android/widget/TextView.html#attr_android:textAppearance) attribute instead. This attribute is available only on `TextView` elements (including subclaseses such as `EditText` or `Button`), and should be assigned a reference to a `<style>` element.
 
-When you define `TextAppearance`s, use any appropriate `TextAppearance` as the parent and define all attributes needed:
+Moreover, a View can have **both** a `style` _and_ a ` textAppearance`&mdash;in effect letting you apply two different styles to the same element!
 
 ```xml
+<!-- for example, inherit from built-in TextAppearance style -->
 <style name="MyTextAppearance" parent="TextAppearance.AppCompat">
     <item name="android:textColor">#0F0</item>
     ...
 </style>
 ```
-
-Once you define a `TextAppearance`, you can use it in any `TextView` with the `android:TextAppearance` attribute:
 
 ```xml
 <TextView
@@ -101,7 +98,7 @@ Once you define a `TextAppearance`, you can use it in any `TextView` with the `a
     android:TextAppearance="@style/MyTextAppearance" />
 ```
 
-Not as good as true multiple styles, but you can apply **two** styles for one view with `TextAppearance` flexibly.
+The intention of this attribute is to let you specify different broad styles for Views (e.g., whether buttons should be rounded, the backgrounds and padding of cards), but still be able to have unified text styling (font a size), as well as different "types" of fonts (e.g., `Large` or `Small` text). In practice, styles that purely modify text appearance should be applied view `textAppearance`, while all other styles should be applied via the `style` attribute/
 
 
 ## Themes
@@ -118,7 +115,7 @@ ___Practice: Experiment with removing the theme attribute from the application._
 - You might also try commenting out the stylings you applied to the individual `TextViews` to _really_ see what happens.
 
 
-### Material Themes
+### Material Themes {-}
 Along with built-in styles, Android provides a number of platform-specific themes. And again, the somewhat unhelpful recommendation is to understand these by browsing the [source code](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/res/res/values/themes.xml), or the list in [R.style](http://developer.android.com/reference/android/R.style.html) (scroll down to constants that start with `Theme`).
 
 One of the most useful set of Android-provided themes are the [**Material Themes**](https://developer.android.com/training/material/theme.html). These are themes that support Google's [Material Design](https://material.io/guidelines/material-design/introduction.html), a visual design language Google uses (or aims to use) across its products, including Android. Material themes were introduced in Lollipop (API 21) and so are only available on devices running API 21+ (though there are [compatibility options](https://developer.android.com/training/material/compatibility.html#Theme)).
@@ -137,7 +134,7 @@ And many variants:
 
 ___Practice: Experiment with applying different material themes to your application___ How does your app's appearance change? Give your application a Dark Material theme!
 
-### Theme Attributes
+### Theme Attributes {-}
 One of the big advantages of Themes is that they can be used to define **theme attributes** that can be [referenced](https://developer.android.com/guide/topics/resources/accessing-resources.html#ReferencesToThemeAttributes) from inside individual, per-View Styles. This allows the Theme to effective "skin" the View. For example, a Theme could define a "color scheme" as a set of attributes; these attributes can then be referenced by the Style as e.g., "the primary color _of the current theme_".
 
 Theme-level attributes are referenced in the XML using the **`?`** symbol (in place of the `@` symbol). For example: `?android:textColorPrimary` will refer to the value of the `<item name="textColorPrimary">` element inside the Theme.
@@ -156,3 +153,7 @@ ___Practice: Modify the provided `AppTheme` style (in `styles.xml`) with the fol
 - Have it define theme attribute colors using the [UW colors](http://www.washington.edu/brand/graphic-elements/primary-color-palette/) (purple and gold). Use these theme attribute colors to "Huskify" your app (including the colors in your custom Styles)
 
 Finally, set the theme of your app back to `AppTheme`&mdash;and you should now have a UW flavored app!
+
+
+## Resources {-}
+- [Styling Views on Android Without Going Crazy (blog post)](http://blog.danlew.net/2014/11/19/styles-on-android/)
