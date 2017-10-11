@@ -1,3 +1,5 @@
+<!-- Lecture is dry, did not run long. MVC went here! -->
+
 # Activities
 This lecture introduces [**Activities**](https://developer.android.com/guide/components/activities/index.html), which are the basic component used in Android applications. Activities provide a framework for the Java code that allows the user to interact with the layouts defined in the resources.
 

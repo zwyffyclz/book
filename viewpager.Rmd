@@ -22,7 +22,7 @@ Your `ViewPager` will need to support three different Fragments. While the `Movi
 
 Create a new Fragment called **`SearchFragment`** (use the `File > New > Fragment > Fragment (Blank)` menu in Android Studio). Your `SearchFragment` will need to include the following components
 
-1. The layout for the Fragment should contain the seach `EditText` and `Button` _taken from_ the `activity_main` layoout. You can add some `layout_gravity` to center the inputs. You can also remove the `onClick` XML attribute, as click handling will be specified in the Java
+1. The layout for the Fragment should contain the search `EditText` and `Button` _taken from_ the `activity_main` layout. You can add some `layout_gravity` to center the inputs. You can also remove the `onClick` XML attribute, as click handling will be specified in the Java.
 
 2. In the `SearchFragment` class, be sure to define a `newInstance()` factory method. The method doesn't need to take any arguments (and thus you don't need to specify an argument bundle).
 
@@ -46,10 +46,10 @@ Just like with a `ListView`, a `ViewPager` requires a (custom) **adapter** in or
 - As in the [documentation example](https://developer.android.com/training/animation/screen-slide.html#viewpager), You will need to provide a constructor that takes in a (Support) `FragmentManager`, and calls the appropriate super constructor.
 
 - The `getItem()` function returns _which_ Fragment is shown for a particular page number. You should implement this function so that page 0 shows a `SearchFragment`, page 1 shows a `MoviesFragment`, and page 2 shows a `DetailsFragment`.
-	- You can declear each of these three Fragments as **instance variables**, then simply return them from this method.
+	- You can declare each of these three Fragments as **instance variables**, then simply return them from this method.
 	- It's okay to "hard-code" this logic for the purposes of this demonstration.
 
-- The `getCount()` function returns how many pages the Pager supports. Note that you will need to include some logic for this: before a search has occured, there is only one page! After the search, there are two pages (the search and the results), and after a result option is selected there are three pages (the search, the results, and the details).
+- The `getCount()` function returns how many pages the Pager supports. Note that you will need to include some logic for this: before a search has occurred, there is only one page! After the search, there are two pages (the search and the results), and after a result option is selected there are three pages (the search, the results, and the details).
 
 - Finally, we will be "replacing" Fragments inside the Pager as the user interacts with the app (e.g., changing the `MoviesFragment` to one with different search results)&mdash;such as by changing the objects that the instance variables refer to. However, the ViewPager "preloads" adjacent Fragment pages as an optimization technique; thus it "caches" the Fragments and won't actually load any updated Views.
 

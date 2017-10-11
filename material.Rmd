@@ -2,37 +2,498 @@
 
 This lecture discusses [Material design](https://material.io/guidelines/material-design/introduction.html): the _design language_ created by Google to support mobile user interfaces. The design language focuses on mobile designs (e.g., for Android), but can also be used across platforms (e.g., on the web through [css frameworks](https://material.io/components/web/)).
 
-<!-- <p class="alert alert-info">This lecture references code found at <https://github.com/info448-s17/lecture14-material>.</p> -->
+<p class="alert alert-info">This lecture references code found at <https://github.com/info448/lecture05-material>.</p>
 
-<p class="alert alert-danger">This lecture is under development and will be added later.</p>
-
-## The Material Design Language `r#[15-20min]`
-//See video: https://www.youtube.com/watch?v=YaG_ljfzeUw (via https://developer.android.com/design/material/index.html)
-
-//summary
+<p class="alert alert-warning">Material Design support was introduced in API 21 Lollipop, and so a device running that version of Android or later is required to access all the Material features supported by Android. However, most functionality is also available via [compatibility libraries](https://developer.android.com/training/material/compatibility.html) (i.e., `AppCompat`), and so can be utilized on older devices as well.</p>
 
 
-## Material Themes
-//styles & theme explanation here? (1hr...)
-    //or have that be an appendix / do in lab?
+## The Material Design Language `r #[15-20min]`
+**Material design** is a _design language_: a "vocabulary" of visual and interactive patterns that are shared across systems. Material forms both a "look and feel" for Google applications and modern (API 21+) Android apps in general, as well as providing a
 
-//material icons
+<div class="figure">
+<iframe width="560" height="315" src="https://www.youtube.com/embed/YaG_ljfzeUw?rel=0" frameborder="0" allowfullscreen></iframe>
+<p class="caption">A video explanation of the Material language (via https://developer.android.com/design/material/index.html)</p>
+</div>
 
-## Animation
-//property animation
+In summary, the Material Design language is based around [three main principles](https://material.io/guidelines/material-design/introduction.html#introduction-principles):
+
+- ___Material is the metaphor___. The Material design language is built around presenting user interfaces as being made of virtual [**materials**](https://material.io/guidelines/material-design/material-properties.html), which ara [paper-like](https://material.io/guidelines/layout/principles.html#principles-how-paper-works) surfaces floating in space. Each surface has a uniform thickness (`1dp`), but different _elevation_ (conveyed primarily through shadows and _perspective_). This physical metaphor helps to indicate different affordances and user interactions: for example, a button is "raised" and can be "pushed down".
+
+- ___Motion provides meaning___. Material also places great emphasis on the use of [**motion**](https://material.io/guidelines/motion/material-motion.html) of these materials in order to help describe the relationships between components as well as make design overall more "delightful". Material applications include lots of animations and flourishes, making the app's usage continuous and connected. Surfaces are able to change shape, size, and position (as long as they stay in their plane&mdash;they cannot fold, but they can split and rejoin) in response to user input.
+
+- ___Bold, graphic, intentional___. Material applications follow a particular aesthetic in terms of things such as [color](https://material.io/guidelines/style/color.html) (not muted), [imagery](https://material.io/guidelines/style/imagery.html) (usually lots of it). Material applications _look_ like material applications, though they can still be customized to meet your particular needs.
+
+For more information on the Material design language, see the [**official guidelines**](https://material.io/guidelines/) (click the hamburger button on the left to navigate). This documentation contains extensive examples and instructions, ranging from suggested font sizes to widget usage advice.
+
+<p class="alert">This lecture focuses on ways to implement specific aspects of the Material Design language in Android applications, rather than on specifics of how to obey the language guidelines.</p>
 
 
+## Material Styles & Icons `r #[10min?]`
+The first and easiest step towards making a Material-based application is to utilize the provided [Material Themes](https://developer.android.com/training/material/theme.html) in order to "skin" your application. These themes are available on API 21 Lollipop and later; for earlier operating system, you can instead use equivalent themes in `AppCompat` (which are in fact the default themes for new Android apps!)
+
+Applying themes (including Material themes) are discussed in more detail in the [Styles & Themes](#styles-themes) lab.
+
+- You can see what specific properties are applied by these styles and themes by browsing the [source code](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/core/res/res/values) for the Android framework&mdash;check out the `styles_material.xml` and `themes_material.xml` (these will also reference values defined in the variable `color` and `dimens` resources). The `AppCompat` styles and themes can be [source code](https://android.googlesource.com/platform/frameworks/support.git/+/refs/heads/master/v7/appcompat/res/values/) for the `v7` support library.
+
+In practice, the biggest part of utilizing a Material Theme is defining the [color palette](https://developer.android.com/training/material/theme.html#ColorPalette) for your app. The Material design specification describes a broad color palette (with available [swatches](https://material.io/guidelines/style/color.html#color-color-palette)); however, it is often more useful to pick your colors using the provided [**color picker tool**](https://material.io/color/#!/)^[https://material.io/color/#!/], which allows you to easily experiment with different color combinations.
+
+- Pick your _primary_ and _secondary_ color, and then assign the resource values `colorPrimary`, `colorPrimaryDark`, and `colorAccent` in `res/values/colors.xml`. This will let you easily "brand" your application.
+
+Material-specific attributes such as `android:elevation` are also available in API 21+, though making shadows visible on arbitrary elements requires some additional work.
+
+In addition to styles, Material also includes a large set of [**icons**](https://material.io/icons/) for use in applications. These icons supplement the built in `ic_*` [drawables](http://androiddrawables.com/) that are built into the platform and are available for use (and show up as auto-complete options in the IDE).
+
+Instead these icons are available as [vector drawables](https://developer.android.com/training/material/drawables.html#VectorDrawables)&mdash;rather than being a `.png` file, images are defined as using an XML schema similar to that used in [Scalable Vector Graphics (SVG)](https://en.wikipedia.org/wiki/Scalable_Vector_Graphics).
+
+<p class="alert alert-info">SVG is used to represent [vector graphics](https://en.wikipedia.org/wiki/Vector_graphics)&mdash;that is, pictures defined in terms of the connection between points (lines and other shapes), rather than in terms of the pixels being displayed (called a [raster image](https://en.wikipedia.org/wiki/Raster_graphics)). In order to be shown on a screen, these lines are converted (rastered) into grids of pixels based on the size and resolution of the display. This allows SVG images to "scale" or "zoom" independent of the size of the display or the image—you never need to worry about things getting blurry as you make them larger!</p>
+
+In order to include a Material icon, you will need to generate the XML code for that particular image. Luckily, Android Studio includes XML definitions for all the Material icons (though you can also define your own vector drawables).
+
+- To create a vector drawable, select `File > New > Vector Asset` from the Android Studio menu. You can then click on the icon to browse for which Material icon you want to create.
+
+- By default the icon  will be colored _black_. If you wish to change the color of the icon when included in your layout, specify the color through the [`android:tint`](https://developer.android.com/training/material/drawables.html#DrawableTint) attribute of the View in your XML (e.g., on the `ImageButton`).
+
+It is also possible to define arbitrary vector shapes in API 21+. For example, the starter code includes a resource for a `<shape>` element that is shaped like an oval.
 
 
+## Design Support Libraries
+In addition to the styling and resource properties available as part of the Android framework, there are also additional components available through extra [**support libraries**](https://developer.android.com/training/material/design-library.html).
 
+Similar to Volley, these libraries are not built into Android and so need to be explicitly listed as dependencies in your app's `build.gradle` file. For example:
+
+```gradle
+compile 'com.android.support:design:26.1.0'
+```
+
+will include the latest version (as of this writing) of the **design support library**, which includes elements such as the Floating Action Button and Coordinator Layouts (described below).
+
+<div class="alert alert-warning"><p>Note that if you have issues installing the dependency, the [setup for including support libraries](https://developer.android.com/topic/libraries/support-library/setup.html) was changed in July 2017 to support downloading dependency libraries through [maven](https://maven.apache.org/) rather than directly from Android Studio. To support this, you will need to change the _project's_ `build.gradle` repository declaration to look like:
+
+```gradle
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
+    }
+}
+```
+</div>
+
+<!-- 40min? -->
+### Widgets {-}
+The support libraries support a number of useful widgets (specialized Views) for creating Material-styled apps.
+
+#### RecyclerView {-}
+The [`RecyclerView`](https://developer.android.com/training/material/lists-cards.html#RecyclerView) is a more advanced version of a `ListView`, providing a more robust system for support interactive Views within the list as well as providing animations for things like adding and removing list items.
+
+This class is part of the `v7` support library (and not the Material Design library specifically), and so you will need to include it specifically in your _app's_ `build.gradle` file (the same way you included Volley):
+
+```gradle
+compile 'com.android.support:cardview-v7:26.1.0'
+```
+
+Implementing a `RecyclerView` is very similar to implementing a `ListView` (with the addition of the [ViewHolder pattern](https://developer.android.com/training/improving-layouts/smooth-scrolling.html#ViewHolder)), though you also need to declare a `LayoutManager` to specific if your RecyclerView should use a List or a Grid.
+
+The best way to understand the RecyclerView is to look at the example and modify that to fit your particular item view. For example, you can change a ListView into a RecyclerView by adapting the sample code provided by Google's [official documentation](https://developer.android.com/training/material/lists-cards.html#RecyclerView)^[https://developer.android.com/training/material/lists-cards.html#RecyclerView]:
+
+- First, you will need to replace the XML View declaration with a `<android.support.v7.widget.RecyclerView>` element. In effect, we're just modifying the **controller** for the list.
+
+- There are a few extra steps when setting up the `RecyclerView` in the Java code. In particular, you will also need to associate a `LayoutManager` object to with the View&mdash;for example, a `LinearLayoutManager` to show items in a line (a la a ListView), or a `GridLayoutManager` to show items in a grid (a la a GridView).
+
+- All `RecyclerViews` require _custom adapters_: we cannot just use a built-in adapter such as `ArrayAdapter`. To do this, create a class that `extends RecyclerView.Adapter<VH>`.
+
+    - The generic in this class is a class representing a [View Holder](https://developer.android.com/training/improving-layouts/smooth-scrolling.html#ViewHolder). This is a pattern by which each individual Views that will be inflated and references are stored as individual _objects_ with the particular Views to be modified (e.g., `TextView`) saved as instance variables. This avoids the need for the adapter to repeatedly use `findViewById()`, which is an expensive operation (since it involves crawling the View hierarchy tree!)
+
+        The `ViewHolder` will be _another_ class&mdash;usually an inner class of the adapter. It acts as a simple "container" object (similar to a `struct` in C). You can assign these instance variables the results of the `findViewById()` calls in the ViewHolder's constructor.
+
+    - The `RecyclerView` (not the `ViewHolder`) requires you to override the `onCreateViewHolder()` method, which will `inflate()` the View and instantiate a `ViewHolder` for each item when that item needs to be displayed for the first time.
+
+    - In the overridden `onBindViewHolder()` you can do the actual work of assigning model content to the particular View (e.g., called `setText()`). You don't need to use `findViewById()` here, because you've already saved a reference to that View in the `ViewHolder`!
+
+    - The `getItemCount()` is used internally for the RecyclerView to determine when you've gotten to the "end" of the list.
+
+- Finally, you can assign the custom adapter to the `RecyclerView` in order to associate the model and the View.
+
+And that's about it! While it is more code and more complex than a basic ListView, as soon as you've added in the ViewHolder pattern or done any other kinds of customizations, you're basically at the same level. Additionally
+
+Note that _unlike_ with a ListView, we usually modify the items shown in a `RecyclerView` by modifying the data model (e.g., the array or ArrayList) directly. But we will need to [notify](https://guides.codepath.com/android/using-the-recyclerview#notifying-the-adapter) the `RecyclerView`'s adapter of these changes by calling one of the various `.notify()` methods on the adapter (e.g., `adapter.notifyItemInserted(position)`). This will cause the adapter to "refresh" the display, and it will actually animate the changes to the list by default!
+
+Using a RecyclerView instead of a ListView also enables common user actions such as "drag-to-order" or "swipe-to-dismiss". See [this guide](https://medium.com/@ipaulpro/drag-and-swipe-with-recyclerview-b9456d2b1aaf) for a walkthrough on adding these capabilities.
+
+
+#### Cards {-}
+The `v7` support library also provides a View for easily styling content as [**Cards**](https://developer.android.com/training/material/lists-cards.html#CardView). A `CardView` is basically a `FrameLayout` (a ViewGroup that contains one child View), but include borders and shadows that make the group look like a card.
+
+- You will need to load the `CardView` class as a gradle dependency using `compile 'com.android.support:cardview-v7:26.1.0'`.
+
+To utilize a `CardView`, simply include it in your layout as you would any other ViewGroup:
+
+```xml
+<android.support.v7.widget.CardView
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="@dimen/card_width"
+    android:layout_height="@dimen/card_height"
+    android:layout_gravity="center"
+    card_view:cardCornerRadius="4dp">
+
+    <!-- A single TextView in the card -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/card_text" />
+
+</android.support.v7.widget.CardView>
+
+```
+- Notice the `card_view:cardCornerRadius` attribute; this is an example of how specific Views may have their own custom properties (sometimes available via a different schema).
+
+Since Cards are `FrameLayouts`, they should only contain a single child. If you want to include multiple elements inside a Card (e.g., an image, some text, and a button), you will need to nest another ViewGroup (such as a `LinearLayout`) inside the Card.
+
+For design suggestions on using Cards, including spacing information, see the [Material Design guidelines](https://material.io/guidelines/components/cards.html).
+
+<p class="alert alert-info"> If you want to include a circular image in your card (or anywhere else in your app), the easiest solution is to include an external library that provides such a View, the most popular of which is [`de.hdodenhof.circleimageview`](https://github.com/hdodenhof/CircleImageView).</p>
+
+
+#### Floating Action Buttons (FAB) {-}
+While RecyclerViews and Cards are found in the `v7` support library, the most noticeable and interesting components come from the [Design Support Library](https://developer.android.com/training/material/design-library.html), which specifically includes components for supporting Material Design.
+
+- This library should be includes in gradle as `com.android.support:design:26.1.0`, as in the above example.
+
+The most common element from this library is the [**Floating Action Button (FAB)**](https://developer.android.com/training/material/design-library.html#CreateFAB). This is a circular button that "floats" above the content of the screen (at a higher elevation), and represents the _primary action_ of the UI.
+
+- A screen should only ever have one FAB, and only if there is a single main action that should be performed. See the [design guidelines](https://material.io/guidelines/components/buttons-floating-action-button.html) for more examples on how to use (and not use) FABS.
+
+Like a Card, you can include a FAB in your application by specifying it as an element in your XML:
+
+```xml
+<android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="@dimen/fab_margin"
+        android:src="@drawable/ic_my_icon" />
+```
+
+- Because FABs are a subclass of `ImageButton`, we can just replace an existing button with a FAB without breaking anything.
+
+Fabs support a number of additional effects. For example, if you make the FAB clickable (via `android:clickable`), you can specify an `app:rippleColor` to give it a rippling effect when pressed. Further details will be presented below.
+
+#### Snackbars {-}
+The Design Support Library also includes an alternative to Toast messages called [**Snackbars**](https://developer.android.com/training/snackbar/showing.html). This is a user-facing pop-up message that appears at the bottom of the screen (similar to a Toast).
+
+Snackbars are shown using a similar structure to Toasts:
+
+```java
+Snackbar snack = Snackbar.make(view, "Let's go out to the lobby!", Snackbar.LENGTH_LONG).show();
+```
+
+- Instead of calling the `Toast.makeText()` factory method, we call the `Snackbar.make()` factory method. The first parameter in this case needs to be a View that the Snackbar will be "attached" to (so shown with)&mdash;however, it doesn't really matter which View is given, since the method will search up the view heirarchy until it gets to the root content view or a `CoordinatorLayout`.
+
+- You'll notice that the Snackbar overlays the content (including the FAB). This will be addressed below by introducing a `CoordinatorLayout`.
+
+Additionally, it is possible to give Snackbar's their own _action_ that the user can activate by clicking on the Snackbar. This allows the bar to, for example, show a delete confirmation but providing an "undo" action. The action is specified by calling the `.setAction()` method on the Snackbar, and passing in a title for the action as well as an `OnClickListener`:
+
+```java
+mySnackbar.setAction("Click", new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        //...
+    }
+});
+```
+
+- For practice, make the Snackbar `.hide()` the FAB, but provide an "undo" action that will `.show()` it!
+
+Again, see the [design guidelines](https://material.io/guidelines/components/snackbars-toasts.html) for more examples on how to use (and not use) Snackbars.
+
+
+<!-- Break here! -->
+### Coordinator Layout {-}
+In order to fix the Snackbar and Fab overlap, we'll need to utilize one of the most powerful but complex classes in the Material support library: the [**CoordinatorLayout**](https://developer.android.com/reference/android/support/design/widget/CoordinatorLayout.html). This layout is described as "a super-powered Framelayout", and provides support for a number of interactive and animated behaviors involves other classes. A lot of the "whizbang" effects in Material are built on top of the CoordinatorLayout (or other classes that rely on it).
+
+To start our exploration of CoordinatorLayout, let's begin by fixing the Snackbar overlap. To do this, we'll take the existing layout for the activity and "wrap" it in a `<android.support.design.widget.CoordinatorLayout>` element:
+
+```xml
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Previous layout elements -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- etc -->
+
+    </RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>
+```
+
+We will also need to move the FAB definition so that it is a _direct child_ of the CoordinatorLayout. Once we have done so, we should be able to click the button and watch it move up to make room for the Snackbar!
+
+- How this works is that the CoordinatorLayout allows you to give [**Behaviors**](https://developer.android.com/reference/android/support/design/widget/CoordinatorLayout.Behavior.html) to its child views; these Behaviors will then be executed when the state of the CoordinatorLayout (or its children) changes. For example, the built-in `FloatingActionButton.Behavior` defines how the button should move in response to it's parent changing size, but Behaviors can also be defined in response to use interactions such as swipes or other gestures.
+
+#### Scrolling Layouts {-}
+Indeed, the built-in behaviors can be quite complex (and wordy to implement), and the best way to understand them is to see them in action. To see an example of this, create a **new** Activity for your application (e.g., `File > New > Activity`). But instead of creating an _Empty_ Activity as you've done before, you should instead create a new **ScrollingActivity**.
+
+- Modify the FAB action so that when you click on it, you send an `Intent` for to open up this new Activity:
+
+    ```java
+    startActivity(new Intent(MainActivity.this, ScrollingActivity.class));
+    ```
+
+- And once you've opened up the Activity... try scrolling! You should see the ActionBar collapse while the FAB moves up and disappears.
+
+This is an example of a collection of behaviors built into `CoordinatorLayout` and other classes in the Design Support library. To get a sense for how they work, open up the newly created `activity_scrolling.xml` layout resource and see how this layout was constructed!
+
+- At the root of the layout we find the `CoordinatorLayout`, ready to "coordinate" all of its children and allow them to interact.
+
+- The first child is an [`AppBarLayout`](https://developer.android.com/reference/android/support/design/widget/AppBarLayout.html). This layout specifically supports responding to scroll events produced from within the CoordinatorLayout (e.g., when the user scrolls through the text content). You can control the visibility of this element based on scrolling using the `app:layout_scrollFlags` attribute.
+
+    The AppBarLayout works together with its child [`CollapsingToolbarLayout`](http://developer.android.com/reference/android/support/design/widget/CollapsingToolbarLayout.html), which does just what it says on the tin. It shows a larger title, but then shrinks down in response to scrolling. Here the `scrollFlags` are declared: `scroll|exitUntilCollapse` indicates two flags (combined with a bitwise OR `|`): that the content should scroll, and that it should shrink to its minimum height until it collapses.
+
+    The Toolbar itself is finally defined as a child of `CollapsingToolbarLayout`, though other children could be added here as well. For example, an `ImageView` could be included as a child of the CollapsingToolbarLayout in order to create a collapsing image!
+
+    (Check the documentation for details about all of the specific attributes).
+
+- After the collapsing AppBar, the `CoordinatorLayout` includes a [`NestedScrollView`](https://developer.android.com/reference/android/support/v4/widget/NestedScrollView.html) (declared in a separate file for organization). This is a scrollable view (similar to what is used in a ListView), but both include and be included within scrollable layouts.
+
+    - Notice that this element includes an `app:layout_behavior` attribute, which refers to a particular class: `AppBarLayout$ScrollingViewBehavior` (the `$` is used to refer to a compiled nested class). This Behavior will "automatically scroll any AppBarLayout siblings", allowing the scrolling of the page content to _also_ cuase the AppBarLayout to scroll!
+
+- Finally, we have the FAB for this screen. The biggest piece to note here is how the FAB includes the `app:layout_anchor` attribute assigned a reference to the AppBarLayout. This indicates that the FAB should follow (scroll with) the AppBarLayout; the `app:anchorGravity` property indicates where it should be relative to its anchor. Moreover, the FAB's default behavior will cause it to disappear when then is no room... and since the AppBarLayout exits on collapse, the FAB disappears as well!
+
+In sum: the `NestedScrollingView` has a Behavior that will cause the AppBarLayout to scroll with it. The AppBarLayout has Behaviors that allow it to collapse, and the FAB is connected to that layout to moves up with it and eventually disappear.
+
+#### Custom Behaviors {-}
+We can also create our own custom behaviors if we want to change the way elements interact with the CoordinatorLayout. For example, we can create a Behavior so that the FAB on the `MainActivity` shrinks and disappears when the Snackbar is shown, rather than moving up out of the way!
+
+First, we will create a new Java class to represent our `ShrinkBehavior`. This class will need to `extend CoordinatorLayout.Behavior<FloatingActionButton>` (because it is a `CoordinatorLayout.Behavior` and it will be applied to a `FloatingActionButton`).
+
+- We will need also need to override the constructor so that we can declare/instantiate this class from the XML:
+
+    ```java
+    public ShrinkBehavior(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+    ```
+
+The next step is to make sure the Behavior is able to react to changes in the Snackbar. To do this we have to make the Behavior report that is has the Snackbar as a _dependency_. This way when the CoordinatorLayout is propagating events and changes to all of its children, it will know that it should also inform the FAB about changes to the Snackbar. We do this by overriding the `layoutDependsOn()` method:
+
+```java
+public boolean layoutDependsOn(CoordinatorLayout parent,
+                               FloatingActionButton child, View dependency) {
+    //add SnackbarLayout to the dependency list (if any)
+    return dependency instanceof Snackbar.SnackbarLayout ||
+        super.layoutDependsOn(parent, child, dependency);
+}
+```
+
+- (Technically the `super` class doesn't have any other dependencies, but it's still good practice to call up the tree).
+
+Finally, we can specify what should happen when one of the dependency's Views change by overriding the `onDependentViewChange()` callback:
+
+```java
+public boolean onDependentViewChanged(CoordinatorLayout parent, FloatingActionButton child, View dependency) {
+        if(dependency instanceof Snackbar.SnackbarLayout){
+            //calculate how much Snackbar we see
+            float snackbarOffset = 0;
+            if(parent.doViewsOverlap(child, dependency)){
+                snackbarOffset = Math.min(snackbarOffset, dependency.getTranslationY() - dependency.getHeight());
+            }
+            float scaleFactor = 1 - (-snackbarOffset/dependency.getHeight());
+
+            child.setScaleX(scaleFactor);
+            child.setScaleY(scaleFactor);
+            return true;
+        }else {
+            return super.onDependentViewChanged(parent, child, dependency);
+        }
+    }
+```
+
+- This method will be passed a reference to the `CoordinatorLayout` that is managing the changes, the `FloatingActionButton` who is receiving the change, and _which dependency_ had it's View changed. We check that the dependency is actually a `Snackbar` (since we might have multiple dependencies and want to respond differently to each one), and then call some getters on that dependency to figure out how tall it is (and thus how much we should shrink by). Finally, we use setters to change the scaling of the `child` (the FAB), thereby having it scale!
+
+- And because this scale is dependent on the Snackbar's height, the FAB will also "grow back" when the Snackbar goes away!
+
+This is about the simplest form of Behavior we can have: more complex behaviors can be based on scroll or fling events, utilizing different state attributes for different dependencies!
+
+<p class="alert alert-warning">Custom behaviors are very tricky to write and design; the overridden functions are not very well documented, and by definition these behaviors involve coordinating lots of different classes! Most custom behaviors are designed by reading the Android source code (e.g., for `FloatingActionButton.Behavior`) and modifying that as an example. My suggestion is to search online for behaviors similar to the one you're trying to achieve, and work from there.</p>
+
+
+## Animations `r #time allowing....`
+One of the key principles of Material Design was the use of _motion_: many of the previous examples have involved adding animated changes to elements (e.g., moving or scrolling). The Material theme available in API 21+ provides a number of different techniques for including [**animations**](https://developer.android.com/training/material/animations.html) in your application&mdash;in particular, using animation to give user feedback and provide connections between elements when the display changes. As a final example, this section will cover how to add simple [Activity Transitions](https://developer.android.com/training/material/animations.html#Transitions) so that Views "morph" from one Activity to the next.
+
+In order to utilize Activity Transitions, you will need to enable them in your application's _theme_ by adding an addition `<item>` in the theme declaration (in `res/values/styles.xml`):
+
+```xml
+<!-- in style: enable window content transitions -->
+<item name="android:windowActivityTransitions">true</item>
+```
+
+There are three different kinds of Activity Transitions we can specify:
+
+1. _enter_ transitions, or how Views in an Activity enter the screen
+2. _exit_ transitions, or how Views in an Activity leave the screen
+3. _shared element_ transitions, or how Views that are shared between Activities change
+
+We'll talk about the later, though the previous two follow a similar process.
+
+In order to animate a **shared element** between two Activities, we need to give them matching identifiers so that the transition framework knows to animate them. We do this by giving each of the shared elements an `android:transitionName` attribute, making sure that they have the _same_ value.
+
+- For example, we can give the FAB in each activity an `android:transitionName="fab"`.
+
+- Because the FAB is _anchored_, we actually need to do some extra work (because FAB will morph to the "unanchored" point and then get moved once the anchorage is calculated). The easiest workaround for this is to wrap the anchored FAB inside an anchored `FrameLayout`&mdash;the FAB just then becomes a normal element with the FrameLayout handling the scrolling behavior.
+
+    ```xml
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_anchor="@id/app_bar"
+        app:layout_anchorGravity="bottom|end"
+        android:elevation="12dp"
+        >
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab"
+            android:transitionName="same_fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/fab_margin"
+            app:srcCompat="@android:drawable/ic_dialog_email" />
+    </FrameLayout>
+    ```
+
+Finally, we need to make sure that the Intent used to start the Activity also starts up the transition animation. We do this be including an additional argument to the `startActivity()` method: an options `Bundle` containing details about the animation:
+
+```java
+//transition this single item
+ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(MainActivity.this, button, "fab");
+
+// start the new activity
+startActivity(new Intent(MainActivity.this, ScrollingActivity.class), options.toBundle());
+```
+
+This should cause the FAB to "morph" between Activties (and even morph back when you hit the "back" button)!
+
+For more about what makes effective animation, see the [Material deisgn guidelines](https://material.io/guidelines/motion/material-motion.html).
+
+<p class="alert alert-warning">I find Activity Transitions to be slick, but finicky: getting them to work properly takes a lot of effort and practice. Most professional apps that utilize Material Design use extensive custom animations for generating these transitions. For examples of more complex Material Design animations and patterns, check out sample applications such as [cheesesquare](https://github.com/chrisbanes/cheesesquare) or [plaid](https://github.com/nickbutcher/plaid).</p>
+
+
+### Property Animation {-}
+<p class="alert alert-info">Bonus content! More about animation!</p>
+
+Android actually supports a number of different animation systems that can be used within and _across_ Views. For example:
+
+- Android includes a robust framework for [Scene Transitions](https://developer.android.com/training/transitions/index.html) even outside of Material; see [Adding Animations](https://developer.android.com/training/animation/index.html) for more details.
+
+- Android also supports [OpenGL Animations](https://developer.android.com/guide/topics/graphics/opengl.html) for doing 3D animated systems. This requires knowing the OpenGL API.
+
+In this section, we will discuss how to use [**Property Animation**](https://developer.android.com/guide/topics/graphics/prop-animation.html). This is a general animation framework in which you specify a start state for an Object _property_ (attribute), an end state for that property, and a duration for the animation; the Android systems then changes the property from the start state to the end over that length of time&mdash;thereby producing animation!
+
+- The change in property state over time (that is, at any given "frame") is calculated using [**interpolation**](https://en.wikipedia.org/wiki/Interpolation). This is basically a "weighted average" between the the start and end states, where the weight is determined by how close you are to the "start" or "end". While we often use _linear interpolation_ (so that being 70% across means the end gets 70% of the weight), it is also possible to use _non-linear interpolation_) (e.g., you need to get 70% across in for the end to have 50% of the weight).
+
+    ![Linearly interpolating colors](img/animation/interpolation.png)
+
+
+The main engine for doing this kind of interpolated animation in Android is the [`ValueAnimator`](https://developer.android.com/guide/topics/graphics/prop-animation.html#value-animator)^[http://developer.android.com/guide/topics/graphics/prop-animation.html#value-animator] class. This class lets you specify the start state, end state, and animation duration. It will then be able to run through and calculate all of the "intermediate" values throughout the interpolated animation. The `ValueAnimator` class provides a number of static methods (e.g., `.ofInt()`, `.ofFloat()`, `.ofArgb()`) which creates "animators" for interpolating different _value types_. For example:
+
+```java
+ValueAnimator animation = ValueAnimator.ofFloat(0f, 1f); //interpolate between 0 and 1
+animation.setDuration(1000); //over 1000ms (1 second)
+animation.start(); //run the animation
+```
+
+Of course, just performing this interpolation over time doesn't produce any visible result&mdash;it's changing the numbers, but those numbers don't correspond to anything.
+
+We can access the interpolated values by registering a [listener](https://developer.android.com/guide/topics/graphics/prop-animation.html#listeners) and overriding the callback we're interested in observing (e.g., `onAnimationUpdate()` from `ValueAnimator.AnimatorUpdateListener`). But more commonly, we want to have our interpolated animation change the _property_ of some object&mdash;for example, the color of a View, the position of an Button, or the instance variables of an object such as a `Ball`.
+
+We can do this easily using the [`ObjectAnimator`](https://developer.android.com/guide/topics/graphics/prop-animation.html#object-animator)^[http://developer.android.com/guide/topics/graphics/prop-animation.html#object-animator] subclass. This subclass runs an animation just like the `ValueAnimator`, but has the built-in functionality to change a property of an object on each interpolated step. It does this by calling a **setter** for that property&mdash;thus the object needs to have a [setter method](http://docs.oracle.com/javaee/6/tutorial/doc/gjbbp.html) for the property we want to animate:
+
+```java
+//change the "alpha" property of foo: will call `foo.setAlpha(float)`
+ObjectAnimator anim = ObjectAnimator.ofFloat(foo, "alpha", 0f, 1f);
+anim.setDuration(1000);
+anim.start();
+```
+
+- This example will mutate the object by calling the `setAlpha()` method (the name of the method is generated from the property name following normal CamelCasing style).
+
+- If the object lacks such a setter, such as because we are using a class provided by someone else, we can either make a "wrapper" which will call the appropriate mutating function, or just utilize a `ValueAnimator` with an appropriate listener.
+
+For example, we can use this approach to change the squares's size or position using an interpolated animation (make it "pulse").
+
+- Note that we're just changing the object property; the only reason we would see the changed display is because Android is responding to changes in the View.
+
+The `ObjectAnimator` interpolator methods support a number of variations as well:
+
+- As long as the object has an appropriate **getter**, it is possible to only pass the Animator an ending value (indicating that the animation should interpolate "from current state to specified end state")
+
+- We can use `.setRepeatCount(ObjectAnimator.INFINITE)` and `.setRepeatMode(ObjectAnimator.REVERSE)` to cause it to repeat back and forth.
+
+If we want to include multiple animations in sequence, we can use an [`AnimatorSet`](https://developer.android.com/guide/topics/graphics/prop-animation.html#choreography), which gives us methods used to specify the ordering:
+
+```java
+//example from docs
+ObjectAnimator animX = ObjectAnimator.ofFloat(obj, "x", 50f);
+ObjectAnimator animY = ObjectAnimator.ofFloat(obj, "y", 100f);
+AnimatorSet animSetXY = new AnimatorSet();
+animSetXY.playTogether(animX, animY);
+animSetXY.start();
+```
+
+AnimatorSet animations can get complicated, and we may want to reuse them. Thus best practice is to instead define them in XML as [resources](https://developer.android.com/guide/topics/graphics/prop-animation.html#declaring-xml). Animation resources are put inside the `/res/animator` directory (**not** the `/res/anim/` folder, which is for [View Animations](https://developer.android.com/guide/topics/graphics/view-animation.html)).
+
+```xml
+<set android:ordering="together"> <!-- together is default -->
+  <objectAnimator
+           android:propertyName="x"
+           android:duration="500"
+           android:valueTo="400"
+           android:valueType="intType"/>
+  <!-- ... -->
+</set>
+```
+- See [Property Animation Resources](https://developer.android.com/guide/topics/resources/animation-resource.html#Property)^[http://developer.android.com/guide/topics/resources/animation-resource.html#Property] for the full XML schema.
+
+- Note that by defining animations as resources, it also mens that we can easily have different device configurations use different animations (e.g., perhaps objects move faster on larger displays).
+
+In order to utilize the XML, we will need to **inflate** the Animator resource, just as we have done with Layouts:
+
+```java
+ObjectAnimator anim = (ObjectAnimator)AnimatorInflater.loadAnimator(context, R.anim.my_animation);
+anim.setTarget(myObject);
+anim.start();
+```
+
+Note that we can also use this same framework to animate changes to `Views`: Buttons, Images, etc. Views are objects and have properties (along with appropriate _getter_ and _setter_ methods), so we can use just an `ObjectAnimator`! See [Animating Views](https://developer.android.com/guide/topics/graphics/prop-animation.html#views) for a list of properties we can change (a list that includes `x, y, rotation, alpha, scaleX, scaleY`, and others)
+
+To make this process even simpler, Android also provides a `ViewPropertyAnimator` class. This Animator is able to easily animate multiple properties together (at the same time), and does so in a much more efficient way. We can access this Animator via the `View#animate()` method. We then call relevant shortcut methods on this Animator to "add in" addition property animations to the animation set:
+
+```java
+//animate x (to 100) and y (to 300) together!
+myView.animate().x(100).y(300);
+```
+
+This allows you to easily specify moderately complex property animations for `View` objects.
+
+- But really, if you want to animate layout changes on a modern device, you should use [transitions](http://developer.android.com/training/transitions/index.html), such as the ones we used with Material design.
+
+There are [many more ways](https://developer.android.com/guide/topics/graphics/prop-animation.html) to customize exactly what you want your animation to be. You can also look at [official demos](https://android.googlesource.com/platform/development/+/master/samples/ApiDemos/src/com/example/android/apis/animation) for more examples of different styles of animation.
 
 
 ## Resources {-}
-Some links and resources as a placeholder
+<div class="list-condensed">
+- [Material Design Guidelines](https://material.io/guidelines/) check the whole document (via the hamburger menu on the left).
+- [Material Design for Developers (Google)](https://developer.android.com/training/material/index.html) official documentation for implementing material design
+- [Material Design Primer (CodePath)](https://guides.codepath.com/android/Material-Design-Primer) excellent compiled documentation and examples for implementing Material patterns (CodePath in general is an excellent resource).
+- [Android Design Support Library (Google Blog)](https://android-developers.googleblog.com/2015/05/android-design-support-library.html) an introduction to the support library features
+- [Mastering the Coordinator Layout (Blog)](http://saulmm.github.io/mastering-coordinator) a great set of examples of how to use CoordinatorLayout.
+- [Using CoordinatorLayout in Android Apps (Blog)](http://www.androidauthority.com/using-coordinatorlayout-android-apps-703720/) another good explanation of CoordinatorLayout
 
-- https://developer.android.com/design/material/index.html
-- https://material.io/guidelines/material-design/introduction.html#introduction-principles
-- https://material.io/guidelines/material-design/material-properties.html
-- https://material.io/guidelines/material-design/elevation-shadows.html#elevation-shadows-elevation-android
-- http://saulmm.github.io/mastering-coordinator
 - https://lab.getbase.com/introduction-to-coordinator-layout-on-android/
+</div>

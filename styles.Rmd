@@ -1,3 +1,8 @@
+<!-- Check AppCompat stuff
+     Clarify inheritance example (i.e., with "alert")
+     Implement solution
+ -->
+
 # Styles & Themes
 In this chapter you will learn to use Android [**Styles & Themes**](https://developer.android.com/guide/topics/ui/themes.html) to easily modify and _abstract_ the appearance of an app's user interfaces&mdash;that is, the XML resource attributes that define what your `Views` look like.
 
@@ -32,7 +37,7 @@ Finally, you can specify that you want a particular `View` (e.g., in your `layou
 
 - Note that the `style` attribute does **not** use the `android` namespace!
 
-___Practice: Define a new style___ (e.g., `TextStyle`) that specifies the attributes _shared_ by the 6 `TextViews`: the text size, the with, and the height. Additionally, have the style define the text color as [UW purple](http://www.washington.edu/brand/graphic-elements/primary-color-palette/). Then, refactor these TextViews so that they use the style you just defined _instead of_ duplicating attributes. See how much code you've saved?
+___Practice: Define a new style___ (e.g., `TextStyle`) that specifies the attributes _shared_ by the 6 `TextViews`: the text size, the width, and the height. Additionally, have the style define the text color as [UW purple](http://www.washington.edu/brand/graphic-elements/primary-color-palette/). Then, refactor these TextViews so that they use the style you just defined _instead of_ duplicating attributes. See how much code you've saved?
 
 - After you've done that, go ahead and change the size of _all_ the `TextViews` to be `22sp`. You should be able to make this change in exactly one place!
 

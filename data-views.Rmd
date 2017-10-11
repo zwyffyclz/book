@@ -1,3 +1,5 @@
+<!-- Went a bit better; Singleton not clearly explained; ImageLoader needs more support :( -->
+
 # Data-Driven Views {#data-views}
 
 [Lecture 3](#resources-and-layouts) discussed how to use Views to display content and support user interaction. This lecture extends those concepts and presents techniques for creating **data-driven views**&mdash;views that can _dynamically_ present a data model in the form of a _scrollable list_. It also explains how to access data on the web using the [Volley](https://developer.android.com/training/volley/index.html) library. Overall, this process demonstrates a common way to connect the user interface for the app (defined as XML) with logic and data controls (defined in Java), following the **Model-View-Controller** architecture found throughout the Android framework.

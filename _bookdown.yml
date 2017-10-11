@@ -12,7 +12,7 @@ rmd_files:
   - layouts.Rmd
   - activities.Rmd
   - data-views.Rmd
-  # - material.Rmd
+  - material.Rmd
   # - intents.Rmd
   # - menus-dialogs.Rmd
   # - fragments.Rmd

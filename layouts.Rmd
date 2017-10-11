@@ -1,3 +1,5 @@
+<!-- Lecture is dry, needs more interaction/practice (slide-driven??) -->
+
 # Resources and Layouts
 This lecture discusses [**Resources**](https://developer.android.com/guide/topics/resources/overview.html), which are used to represent elements or data that are separate from the behavior (functional logic) of an app. In particular, this lecture focuses on how resources are used to define **Layouts** for user interfaces. This lecture focuses on the XML-based source code in an Android app; the [Activities](#activities) lecture begins to detail the source code written in Java.
 
