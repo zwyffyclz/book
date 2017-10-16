@@ -164,7 +164,7 @@ Activities are listed as `<activity>` elements nested in the `<application>` ele
 
 - We can add `android:label` attributes to these `<activity>` elements in order to give the Activities nicer display names (e.g., in the ActionBar).
 
-### Intents {-}
+### Intents {#activity-intents .unnumbered}
 In Android, we don't start new Activities by instantiating them (remember, _we never instantiate Activities_!). Instead, we send the operating system a message requesting that the Activity perform a particular action (i.e., start up and display on the screen). These messages are called [**Intents**](https://developer.android.com/guide/components/intents-filters.html), and are used to communicate between app components like Activities. The Intent system allows Activities to communicate, even though they don't have references to each other (we can't just call a method on that other Activity).
 
 - I don't have a good justification for the name, other than Intents announce an "intention" for the OS to do something (like start an Activity)
