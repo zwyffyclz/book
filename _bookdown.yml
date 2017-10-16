@@ -28,7 +28,7 @@ rmd_files:
   - part-labs.Rmd
   # #- debugger.Rmd
   - styles.Rmd
-  # - viewpager.Rmd
+  - viewpager.Rmd
   # - accessibility.Rmd
   # - bluetooth.Rmd
   # - maps.Rmd
