@@ -13,9 +13,9 @@ rmd_files:
   - activities.Rmd
   - data-views.Rmd
   - material.Rmd
+  - fragments.Rmd
   # - intents.Rmd
   # - menus-dialogs.Rmd
-  # - fragments.Rmd
   # - notifications-settings.Rmd
   # - loaders.Rmd
   # - databases-providers.Rmd
@@ -28,8 +28,8 @@ rmd_files:
   - part-labs.Rmd
   # #- debugger.Rmd
   - styles.Rmd
-  # - accessibility.Rmd
   # - viewpager.Rmd
+  # - accessibility.Rmd
   # - bluetooth.Rmd
   # - maps.Rmd
   # - memory.Rmd

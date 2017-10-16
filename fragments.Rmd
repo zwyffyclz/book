@@ -1,13 +1,12 @@
 # Fragments {#fragments}
-<p class="alert alert-danger">This chapter is out of date and will be updated soon.</p>
 
 This lecture discusses Android [**Fragments**](https://developer.android.com/guide/components/fragments.html). A Fragment is "a behavior or a _portion_ of user interface in Activity." You can think of them as "mini-activities" or "sub-activities". Fragments are designed to be **reusable** and **composable**, so you can mix and match them within a single screen of a user interface. While XML resource provide reusable and composable _views_, Fragments provide reusable and composable _controllers_. Fragments allow us to make re-usable pieces of Activities that can have their own layouts, data models, event callbacks, etc.
 
-<p class="alert alert-info">This lecture references code found at <https://github.com/info448-s17/lecture05-fragments>. Note that this code builds upon the example developed in Lecture 4.</p>
+<p class="alert alert-info">This lecture references code found at <https://github.com/info448/lecture06-fragments>.</p>
 
-Fragments were introduced in API 11 (Honeycomb), which provided the first "tablet" version of Android. Fragments were designed to provide a UI component that would allow for side-by-side activity displays appropriate to larger screens.
+Fragments were introduced in API 11 (Honeycomb), which provided the first "tablet" version of Android. Fragments were designed to provide a UI component that would allow for side-by-side activity displays appropriate to larger screens:
 
-![Fragment example, from Google^[https://developer.android.com/images/fundamentals/fragments.png]](img/fragments/fragments.png)
+![Fragment example, from Google^[https://developer.android.com/images/fundamentals/fragments.png].](img/fragments/fragments.png)
 
 Instead of needing to navigate between two related views (particularly for this "master and detail" setup), the user can see both views within the same Activity... but those "views" could also be easily split between two Activities for smaller screens, because their required _controller logic_ has been isolated into a Fragment.
 
@@ -16,10 +15,10 @@ Instead of needing to navigate between two related views (particularly for this 
 Although Fragments are like "mini-Activities", they are _always_ embedded inside an `Activity`; they cannot exist independently. While it's possible to have Fragments that are not visible or that don't have a UI, they still are part of an Activity. Because of this, a Fragment's lifecycle is directly tied to its containing Activity's lifecycle. (e.g., if the Activity is paused, the Fragment is too. If the Activity is destroyed, the Fragment is too). However, Fragments also have their own lifecycle with corresponding lifecycle callbacks functions.
 
 <div class="pull-right">
-![Fragment lifecycle state diagram,<br>from Google^[https://developer.android.com/images/fragment_lifecycle.png]](img/fragments/fragment_lifecycle.png)
+![Fragment lifecycle state diagram,<br>from Google^[https://developer.android.com/images/fragment_lifecycle.png].](img/fragments/fragment_lifecycle.png)
 </div>
 
-The Fragment lifecycle is very similar to the Activity lifecycle, with a a couple of additional steps:
+The Fragment lifecycle is very similar to the Activity lifecycle, with a couple of additional steps:
 
 - **`onAttach()`**: called when the Fragment is first associated with ("added to") an Activity, and thus gains a **Context**. This callback is generally used for initializing communication between the Fragment and its Activity.
 
@@ -27,7 +26,7 @@ The Fragment lifecycle is very similar to the Activity lifecycle, with a a coupl
 
 - **`onCreateView()`**: called when the View (the user interface) is about to be drawn. This callback is used to establish any details dependent on the View (including adding event listeners, etc).
 
-	Note that code intializing data models, or anything that needs to be _persisted_ across configuration changes, should instead be done in the `onCreate()` callback. `onCreate()` is not called if the fragment is _retained_ (see below).
+	Note that code initializing data models, or anything that needs to be _persisted_ across configuration changes, should instead be done in the `onCreate()` callback. `onCreate()` is not called if the fragment is _retained_ (see below).
 
 	This callback is mirrored by `onDestroyView()`, for when the Fragment's UI View hierarchy is being removed from the screen.
 
@@ -38,34 +37,34 @@ The Fragment lifecycle is very similar to the Activity lifecycle, with a a coupl
 ## Creating a Fragment `r #[15min]` {.clear}
 In order to illustrate how to make a Fragment, we will [**refactor**](https://en.wikipedia.org/wiki/Code_refactoring) the `MainActivity` to use Fragments for displaying the list of movies. This will help to illustrate the relationship between Activities and Fragments.
 
-To create a Fragment, you subclass the `Fragment` class. Let's make one called `MovieFragment` (in the `MovieFragment.java` file). You can use Android Studio to do this work: via the `File > New > Fragment > Fragment (blank)` menu option. (**DO NOT** select any of the other options for in the wizard for now; they provide template code that can distract from the core principles).
+To create a Fragment, you subclass the `Fragment` class. Let's make one called `MovieListFragment` (in a `MovieListFragment.java` file). You can use Android Studio to do this work: via the `File > New > Fragment > Fragment (blank)` menu option. (**DO NOT** select any of the other options for in the wizard for now; they provide template code that can distract from the core principles).
 
-There are two versions of the `Fragment` class: one in the framework's `android.app` package and one in the `android.support.v4` package. The later package refers to the [Support Library](https://developer.android.com/topic/libraries/support-library/index.html). These are libraries of classes designed to make Android applications _backwards compatible_: for example, `Fragment` and its related classes came out in API 11 so aren't in the `android.app` package for earlier devices. By including the support library, we can include those classes as well!
+There are two versions of the `Fragment` class: one in the framework's `android.app` package and one in the `android.support.v4` package. The later package refers to the [Support Library](https://developer.android.com/topic/libraries/support-library/index.html). As discussed in the previous chapter, these are libraries of classes designed to make Android applications _backwards compatible_: for example, `Fragment` and its related classes came out in API 11 so aren't in the `android.app` package for earlier devices. By including the support library, we can include those classes on older devices as well!
 
-- Support libraries _also_ include additional convenience and helper classes that are not part of the core Android package. These include interface elements (e.g., `ConstraintLayout`, `RecyclerView`, or [`ViewPager`](https://developer.android.com/reference/android/support/v4/view/ViewPager.html)) and [accessibility](https://developer.android.com/reference/android/support/v4/view/accessibility/package-summary.html) classes. See [the features list](https://developer.android.com/topic/libraries/support-library/features.html) for details. Thus it is often useful to include and utilize support library versions of classes so that you don't need to "roll your own" versions of these convenience classes.
+- Support libraries _also_ include additional convenience and helper classes that are not part of the core Android package. These include interface elements (e.g., `ConstraintLayout`, `RecyclerView`, or [`ViewPager`](https://developer.android.com/reference/android/support/v4/view/ViewPager.html)) and [accessibility](https://developer.android.com/reference/android/support/v4/view/accessibility/package-summary.html) classes. See [the features list](https://developer.android.com/topic/libraries/support-library/features.html) for details. Thus it is often useful to include and utilize support library versions of classes even when targeting later devies so that you don't need to "roll your own" versions of these convenience classes.
 
 - The main disadvantage to using support libraries is that they need to be included in your application, so will make the final `.apk` file larger (and may potentially require workarounds for method count limitations). You will also run into problems if you try and mix and match versions of the classes (e.g., from different versions of the support library). But as always, you should _avoid premature optimization_. Thus in this course you should **default** to using the support library version of a class when given a choice!
 
 
-After we've created the `MovieFragment` Java file, we'll want to specify a layout for that Fragment (so it can be shown on the screen). As part of using the New Fragment Wizard we were provided with a `fragment_movie` layout that we can use.
+After we've created the `MovieListFragment.java` file, we'll want to specify a layout for that Fragment (so it can be shown on the screen). As part of using the New Fragment Wizard we were provided with a `fragment_movie_list` layout that we can use.
 
-- Since we want the Movie list to live in that Fragment, we can move (copy) the View definitions from `activity_main` into `fragment_movie`.
+- Since we want the Movie list to live in that Fragment, we can move (copy) the View definitions from `activity_main` into `fragment_movie_list`.
 - We will then adjust `activity_main` so that it instead contains an empty `FrameLayout`. This will act as a simple **"container"** for our Fragment (similar to an empty `<div>` in HTML). _Be sure to give it an `id` so we can refer to it later!_.
 
-It is possible to include the Fragment directly through the XML, using the XML to instantiate the Fragment (the same way that we have the XML instantiate Buttons). We do this by specifying a `<fragment>` element, with a `android:name` attribute assigned a reference to the `Fragment` class:
+It is possible to include the Fragment directly through the XML, using the XML to instantiate the Fragment (the same way that we have the XML instantiate Buttons). We do this by specifying a `<fragment>` element, with an `android:name` attribute assigned a reference to the `Fragment` class:
 
 ```xml
 <fragment
-   android:id="@+id/frag_movie"
-	 android:name="edu.uw.fragmentdemo.MovieFragment"
+   android:id="@+id/fragment"
+	 android:name="edu.uw.fragmentdemo.MovieListFragment"
 	 android:layout_width="match_parent"
 	 android:layout_height="match_parent"/>
 ```
 
-Defining the Fragment in the XML works (and will be fine to start with), but in practice it is _much_ more worthwhile to instantiate the Fragemnts **dynamically** at runtime in the Java code&mdash;thereby allowing the Fragments to be dynamically determined and changed. We will start with the XML version to built the Fragment, and then shift to the Java version.
+Defining the Fragment in the XML works (and will be fine to start with), but in practice it is _much_ more common and worthwhile to instantiate the Fragments **dynamically** at runtime in the Java code&mdash;thereby allowing the Fragments to be dynamically determined and changed. We will start with the XML version to built the Fragment, and then shift to the Java version.
 
 
-We can next begin filling in the Java logic for the Fragment. Android Studio provides a little starter code: a constructor and the `onCreateView()` callback&mdash;the later is more relevant since we will use that to set up the layout (similar to in the `onCreate()` function of `MainActivity`). But the `MainActivity#onCreate()` method specifies a layout by calling `setContentView()` and pasing a resource id. With Fragments, we can't just "set" the View because the Fragment _belongs to_ an Activity, and so will exist _inside_ its View hierarchy! Instead, we need to figure out which ViewGroup the Fragment is inside of, and then **inflate** the Fragment inside that View.
+We can next begin filling in the Java logic for the Fragment. Android Studio provides a little starter code: a constructor and the `onCreateView()` callback&mdash;the later is more relevant since we will use that to set up the layout (similar to in the `onCreate()` function of `MainActivity`). But the `MainActivity#onCreate()` method specifies a layout by calling `setContentView()` and passing a resource id. With Fragments, we can't just "set" the View because the Fragment _belongs to_ an Activity, and so will exist _inside_ its View hierarchy! Instead, we need to figure out which ViewGroup the Fragment is inside of, and then **inflate** the Fragment's View inside that ViewGroup.
 
 This "inflated" View is referred to as the ___root view___: it is the "root" of the Fragment's View tree (the View that all the Views inside the Fragment's layout will be attached to). We access the root view by _inflating_ the fragment's layout, and saving a reference to the inflated View:
 
@@ -73,31 +72,32 @@ This "inflated" View is referred to as the ___root view___: it is the "root" of 
 View rootView = inflater.inflate(R.layout.fragment_layout, container, false);
 ```
 
-- Note that the `inflater` object we are calling `inflate()` on is passed as a parameter to the `onCreateView()` callback. The parameters to the `inflate()` method are: the layout to inflate, the `ViewGroup` (`container`) into which the layout should be inflated (also passed as a parameter to the callback), and whether or not to "attach" the inflated layout to the container (`false` in this case because the Fragment system already handles the attachment, so the inflate method doesn't need to). The `onCreateView()` callback must `return` the inflated _root view_, so that the system can perform this attachment.
+- Note that the `inflater` object we are calling `inflate()` on was passed as a parameter to the `onCreateView()` callback. The parameters to the `inflate()` method are: the layout to inflate, the `ViewGroup` (`container`) into which the layout should be inflated (also passed as a parameter to the callback), and whether or not to "attach" the inflated layout to the container (`false` in this case because the Fragment system already handles the attachment, so the inflate method doesn't need to). The `onCreateView()` callback must `return` the inflated _root view_, so that the system can perform this attachment.
 
 With the Fragment's layout defined, we can start moving functionality from the Activity into the Fragment.
 
-- The the background `ASyncTask` can be moved over directly, so that it belongs to the Fragment instead of the Activity.
-- The `adapter` declaration will need to be moved as well.
-- The UI setup (including initializing the Adapter) will be moved from the Activity's `onCreate()` to the Fragment's `onCreateView()`. However, you will need to make a few changes during this refactoring:
+- The `ListView` and `adapter` setup will need to be moved over. The UI setup (including initializing the Adapter) will be moved from the Activity's `onCreate()` to the Fragment's `onCreateView()`. However, you will need to make a few changes during this refactoring:
 
 	- The `findViewById()` method is a method of the `Activity` class, and thus can't be called on an implicit `this` inside the Fragment. Instead, the method can be called on the **root view**, searching just that View and its children.
 
-	- The Adapter's constructor requires a `Context` as its first parameter; while an `Activity` is a `Context`, a `Fragment` is not&mdash;Fragments operate in the Context of their containing Activity! Fragments can refer to the Activity that they are inside (and the `Context` it represents) by using the `getActivity()` method. Note that this method is used _primarily_ for getting a reference to a `Context`, not for arbitrart commuication withe Activity (see below for details)
+	- The Adapter's constructor requires a `Context` as its first parameter; while an `Activity` is a `Context`, a `Fragment` is _not_&mdash;Fragments operate in the Context of their containing Activity! Fragments can refer to the Activity that they are inside (and the `Context` it represents) by using the `getActivity()` method. Note that this method is used _primarily_ for getting a reference to a `Context`, not for arbitrary communication with the Activity (see below for details)
 
-### Activity-to-Fragment Communication
-The example code intentionally has left the _input controls_ (the search field and button) in the Activity, rather than making them part of the Fragment. Apart from being a useful demonstration, this allows the Fragment to have a single purpose (showing the list of movies) and would let us change the search UI independent of the displayed results. But since the the button is in the Activity but the downloading functionality is in the Fragment, we need a way for the Activity to "talk" to the Fragment. We thus need a reference to the contained Fragment&mdash;access to the XML similar to that provided by `findViewById`.
+- The `downloadMovieData()` helper method can be moved over, so that it belongs to the Fragment instead of the Activity. It will be the _Fragment's_ responsibility to handle data downloading.
+
+
+### Activity-to-Fragment Communication {-}
+This example has intentionally left the _input controls_ (the search field and button) in the Activity, rather than making them part of the Fragment. Apart from being a useful demonstration, this allows the Fragment to have a single purpose (showing the list of movies) and would let us change the search UI independent of the displayed results. But since the the button is in the Activity while the downloading functionality is in the Fragment, we need a way for the Activity to "talk" to the Fragment. We thus need a _reference_ to the contained Fragment&mdash;access to the XML similar to that provided by `findViewById`.
 
 We can get a reference to a contained Fragment from an Activity by using a [`FragmentManager`](https://developer.android.com/reference/android/support/v4/app/FragmentManager.html). This is an object responsible for (ahem) managing Fragment. It allows us to "look up" Fragments, as well as to manipulate which Fragments are shown. We access this FragmentManager by calling the `getSupportFragmentManager()` method on the Activity, and then can use `findFragmentById()` to look up an XML-defined Fragment by its `id`:
 
 ```java
-//MovieFragment example
-MovieFragment fragment = (MovieFragment)getSupportFragmentManager().findFragmentById(R.id.fragment);
+//MovieListFragment example
+MovieListFragment fragment = (MovieListFragment)getSupportFragmentManager().findFragmentById(R.id.fragment);
 ```
 
 - Note that we're using a method to explicit access the **support** `FragmentManager`. The Activity class (API level 15+) is able to work with both the platform and support `FragmentManager` classes. But because these classes don't have a shared `interface`, the Activity needs to provide different Java methods which can return the correct type.
 
-Once you have a reference to the Fragment, this acts just like an other object&mdash;you can call any `public` methods it has! For example, if you give the Fragment a public method (e.g., `searchMovies()`), then this method can be called from the Activity:
+Once you have a reference to the Fragment, this acts just like any other object&mdash;you can call any `public` methods it has! For example, if you give the Fragment a public method (e.g., `searchMovies()`), then this method can be called from the Activity:
 
 ```java
 //called from Activity on the referenced fragment
@@ -108,20 +108,20 @@ fragment.searchMovies(searchTerm)
 
 At this point, the program should be able to be executed... and continue to function in exactly the same way! The program has just been refactored, so that all the movie downloading and listing work is **encapsulated** inside a Fragment that can be used in different Activities.
 
-- In effect, we've created our own "widget" that can be included in any other screen, such as if we always wanted the list of movies to be available alongside some other user interface components.
+- In effect, we've created our own "widget" that can be included in any other screen, such as if we repeatedly wanted the list of movies to be available alongside some other user interface components.
 
 
 ## Dynamic Fragments `r #[30min]`
-The real benefit from encapsulating behavior in a Fragment is to be able to support multiple Fragments within a single Activity. For example, in the the archetypal ["master/detail"](https://developer.android.com/training/implementing-navigation/descendant.html#master-detail) navgiation flow, one screen (Fragment) holds the "master" (list) and another screen (Fragment) holds details about a particular item. This is a very common navigation pattern for Android apps, and can be seen in most email or news apps.
+The real benefit from encapsulating behavior in a Fragment is to be able to support multiple Fragments within a single Activity. For example, in the the archetypal ["master/detail"](https://developer.android.com/training/implementing-navigation/descendant.html#master-detail) navigation flow, one screen (Fragment) holds the "master list" and another screen (Fragment) holds details about a particular item. This is a very common navigation pattern for Android apps, and can be seen in most email or news apps.
 
-- On large screens, Fragments allow these two screens to be placed side by side!
+- On large screens, Fragments allow these two Views to be placed side by side!
 
 In this section, we will continue to refine the Movie app so that when the user clicks on a Movie in the list, the app shows a screen (Fragment) with details about the selected movie.
 
-### Instantiating Fragments
-To do this, we will need to instantiate the Fragments dynamically (in Java code), rather than statically in the XML using the `<fragment>` element. This is because we need to be able to dynamically change which Fragment is currently being shown, which is not possibly for Fragments that are "hard-coded" in the XML.
+### Instantiating Fragments {-}
+To do this, we will need to instantiate the desired Fragment **dynamically** (in Java code), rather than statically in the XML using the `<fragment>` element. This is because we need to be able to dynamically change _which_ Fragment is currently being shown, which is not possibly for Fragments that are "hard-coded" in the XML.
 
-Unlike Activities, Fragments (such as `MovieFragment`) **do** have constructor methods that can be called&mdash;in fact, Android _requires_ that every Fragment include a default (no-argument) constructor that is called when Fragments are created by the system. While we are able to call this constructor, it is considered best practice to **not** call this constructor directly when you want to instantiate a Fragment, and to in fact leave the method empty. This is because we do not have full control over when the constructor is executed: the Android system may call the no-argument constructor whenever it needs to recreate the Activity (or just the Fragment), which can happen at arbitrary times. Since only this default constructor is called, we can't add an additional constructor with any arguments we may want the Fragment to have (e.g., the `searchTerm`)... and thus it's best to not use it at all.
+Unlike Activities, Fragments (such as `MovieListFragment`) **do** have constructor methods that can be called. In fact, Android _requires_ that every Fragment include a default (no-argument) constructor that is called when Fragments are created by the system! While we are have access to the constructor, it is considered best practice to **not** call this constructor directly when you want to instantiate a Fragment, and to in fact leave the method empty. This is because we do not have full control over when the constructor is executed: the Android system may call the no-argument constructor whenever it needs to recreate the Activity (or just the Fragment), which can happen at arbitrary times. Since only this default constructor is called, we can't add an additional constructor with any arguments we may want the Fragment to have (e.g., the `searchTerm`)... and thus it's best to not use it at all.
 
 Instead, we specify a **simple factory** method (by convention called `newInstance()`) which is able to "create" an instance of the Fragment for us. This factory method can take as many arguments as we want, and then does the work of passing these arguments into the Fragment instantiated with the default constructor:
 
@@ -135,11 +135,11 @@ public static MyFragment newInstance(String argument) {
 }
 ```
 
-In order to pass the arguments into the new Fragment, we wrap them up in a [`Bundle`](https://developer.android.com/reference/android/os/Bundle.html) (an object containing basic _key-value pairs_). Values can be added to a `Bundle` using an appropriate `putType()` method; note that these do need to be primative types (`int`, `String`, etc.). The `Bundle` of arguments can then be assignment to the Fragment by calling the <a href="http://developer.android.com/reference/android/app/Fragment.html#setArguments(android.os.Bundle)">`setArguments()`</a> method.
+In order to pass the arguments into the new Fragment, we wrap them up in a [`Bundle`](https://developer.android.com/reference/android/os/Bundle.html) (an object containing basic _key-value pairs_). Values can be added to a `Bundle` using an appropriate `putType()` method; note that these do need to be primitive types (`int`, `String`, etc.). The `Bundle` of arguments can then be assignment to the Fragment by calling the <a href="http://developer.android.com/reference/android/app/Fragment.html#setArguments(android.os.Bundle)">`setArguments()`</a> method.
 
-- We will be able to access this `Bundle` from inside the Fragment (e.g., in the `onCreateView()` callback) by using the `getArguments()` method (and `getType()` to retrieve the values from it). This allows us to dynamically adjust the content of the Fragment's Views! For example, we can run the `downloadMovieData()` function using this argument, fetching movie results as soon as the Fragment is created (e.g., on a button press).
+- We will be able to access this `Bundle` from inside the Fragment (e.g., in the `onCreateView()` callback) by using the `getArguments()` method (and `getType()` to retrieve the values from it). This allows us to dynamically adjust the content of the Fragment's Views! For example, we can run the `downloadMovieData()` function using this argument, fetching movie results as soon as the Fragment is created (e.g., on a button press)... allowing the `downloadMovieData()` function to again be made private, for example.
 
-- Since the `Bundle` is a set of _key-value_ pairs, each value needs to have a particular key. These keys are usually defined as private constants (e.g., `ARG_PARAM_KEY` in the above example) to make storage and retrieval easier.
+- Since the `Bundle` is a set of _key-value_ pairs, each value needs to have a particular key. These keys are usually defined as `private` constants (e.g., `ARG_PARAM_KEY` in the above example) to make storage and retrieval easier.
 
 We will then be able to instantiate the Fragment (e.g., in the Activity class), passing it any arguments we wish:
 
@@ -147,7 +147,7 @@ We will then be able to instantiate the Fragment (e.g., in the Activity class), 
 MyFragment fragment = MyFragment.newInstance("My Argument");
 ```
 
-### Transactions
+### Transactions {-}
 Once we've instantiated a Fragment in the Java, we need to attach it to the view hierarchy: since we're no longer using the XML `<fragment>` element, we need some other way to load the Fragment into the `<FrameLayout>` container.
 
 We do this loading using a [**`FragmentTransaction`**](https://developer.android.com/guide/components/fragments.html#Transactions)^[https://developer.android.com/reference/android/support/v4/app/FragmentTransaction.html]. A transaction represents a _change_ in the Fragment that is being displayed. You can think of this like a bank (or database) transaction: they allow you to add or remove Fragments like we would add or remove money from a bank account. We instantiate new transactions representing the change we wish to make, and then "run" that transaction in order to apply the change.
@@ -156,7 +156,7 @@ To create a transaction, we utilize the `FragmentManager` again; the `FragmentMa
 
 Transactions represent a set of Fragment changes that are all "applied" at the same time (similar to depositing and withdrawing money from multiple accounts all at once). We specify these transactions using by calling the `add()`, `remove()`, or `.replace()` methods on the `FragmentTransaction`.
 
-- The `add()` method lets you specify which View **container** you want to add a particular Fragment to. The `remove()` method lets you remove a Fragment you have a reference to. The `replace()` method removes any Fragments in a container and then adds the specified Fragment instead.
+- The `add()` method lets you specify which View **container** you want to add a particular Fragment to. The `remove()` method lets you remove a Fragment you have a reference to. The `replace()` method removes any Fragments in the container and then adds the specified Fragment instead.
 
 - Each of these methods returns the modified `FragmentTransaction`, so they can be "chained" together.
 
@@ -171,17 +171,17 @@ transaction.add(R.id.container, myFragment, MOVIE_LIST_FRAGMENT_TAG);
 transaction.commit();
 ```
 
-- The third argument for the `add()` method is a "tag" we apply to the Fragment beign added. This gives it a name that we can use to find a reference to this Fragment later if we want (via `FragmentManager#findFragmentByTag(tag)`). Alternatively, we can save a reference to the Fragment as an instance variable; this is faster but more memory intensive (and can cause possible leaks, since the reference keeps the Fragment from being reclaimed by the system).
+- The third argument for the `add()` method is a "tag" we apply to the Fragment being added. This gives it a "name" that we can use to find a reference to this Fragment later if we want (via `FragmentManager#findFragmentByTag(tag)`). Alternatively, we can save a reference to the Fragment as an instance variable; this is faster but more memory intensive (and can cause possible leaks, since the reference keeps the Fragment from being reclaimed by the system).
 
 
-### Inter-Fragment Communication
-We can use this structure for instantiating and loading (via transactions) a **second Fragment** (e.g., a "detail" view for a selected Movie). We can add functionality (e.g., in the `onClick()` handler) so that when the user clicks on a movie in the list, we **`replace()`** the currently displayed Fragment with this new detailed Fragment.
+### Inter-Fragment Communication {-}
+We can this transaction-based structure to instantiate and load a **second Fragment** (e.g., a "detail" view for a selected Movie). We can add functionality (e.g., in the `onClick()` handler) so that when the user clicks on a movie in the list, we **`replace()`** the currently displayed Fragment with this new details Fragment.
 
 However, remember that Fragments are supposed to be **modular**&mdash;each Fragment should be _self-contained_, and not know about any other Fragments that may exist (after all, what if we wanted the master/detail views to be side-by-side on a large screen?)
 
-<p class="alert alert-warning">Using `getActivity()` to reference the Activity and `getSupportFragmentManager()` to access the manager is a violation of the [Law of Demeter]()&mdash;don't do it!</p>
+<p class="alert alert-warning">Using `getActivity()` to reference the Activity and `getSupportFragmentManager()` to access the manager is a violation of the [Law of Demeter](http://www.ccs.neu.edu/research/demeter/demeter-method/LawOfDemeter/paper-boy/demeter.pdf)&mdash;don't do it!</p>
 
-Instead, we have Fragments communicate by passing messages through their contained Activity: the `MovieFragment` should tell its Activity that a particular movie has been selected, and then that Activity can determine what to do about it (e.g., creating a `DetailFragment` to dispaly that information).
+Instead, we have Fragments communicate by passing messages through their contained Activity: the `MovieFragment` should tell its Activity that a particular movie has been selected, and then that Activity can determine what to do about it (e.g., creating a `DetailFragment` to display that information).
 
 The recommended way to provide [Fragment-to-Activity communication](https://developer.android.com/training/basics/fragments/communicating.html) is to define an **interface**. The Fragment class should specify an `interface` (for one or more public methods) that its containing Activity _must_ support&mdash;and since the Fragment can only exist within an Activity that implements that interface, it knows the Activity has the specified public methods that it can call to pass information to that Activity.
 
@@ -189,14 +189,14 @@ As an example of this process:
 
 - Create a new `interface` inside the Fragment (e.g., `OnMovieSelectedListener`). This interface needs a public method (e.g., `onMovieSelected(Movie movie)`) that the Fragment can call to give instructions or messages to the Activity.
 
-- In the Fragment's `onAttach()` callback (called when the Fragment is first associated with an Activity), we can check that the Activity actually implements the interface by trying to _cast_ it to that interface. We can also save a reference to this Activity for later:
+- In the Fragment's `onAttach()` callback (called when the Fragment is first associated with an Activity), we can check that the Activity actually implements the interface by trying to _cast_ it to that interface. We can also save a reference to this Activity for later, to save some time:
 
 	```java
 	public void onAttach(Context context) {
 		super.onAttach(context);
 
 		try {
-			callback = (OnMovieSelectedListener)context;
+			callback = (OnMovieSelectedListener)context; //attempt to cast
 		} catch (ClassCastException e) {
 			throw new ClassCastException(context.toString() + " must implement OnMovieSelectedListener");
 		}
@@ -213,11 +213,24 @@ In the end, this will allow you to have one Fragment cause the application to sw
 
 <p class="alert alert-info">This is not the only way for Fragments to communicate. It is also possible to have a Fragment send an `Intent` to the Activity, who then responds to that as appropriate. But using the Intent system is more resource-intensive than using interfaces.</p>
 
+#### Parcelable {-}
+It's not uncommon to want to pass multiple or complex data values as arguments to a new Fragment, such as a `Movie` object. However, the `arguments` for a new Fragment must be passed in through a `Bundle`, which are only able to store primitive values (e.g., `int`, `float`, `String`)... and a special data type called [**Parcelable**](https://developer.android.com/reference/android/os/Parcelable.html). An object that implements the `Parcelable` interface includes methods that allow it to be _serialized_ into a value that is simple enough to place in a Bundle&mdash;in effect, it's values are converted into a formatted String (similar in concept to `JSON.stringify()` in JavaScript).
 
-### The Back Stack
+Implementing the `Parcelable` interface involves the following steps:
+1. provide a `writeToParcel()` method that adds the object's fields to a given `Parcel` object
+2. provide a constructor that can re-create the object from a `Parcel` by reading the values from it (_in the EXACT SAME order they were added_!)
+3. provide a `describeContents()` that returns whether the parcel includes a file descriptor (usually `0`, meaning not)
+4. provide a `Parcelable.Creator` _constant_ that can be used to create the Parcelable.
+
+These steps seem complex but are fairly rote: as such, it's possible to "automate" making a class into a Parcelable. My favorite strategy is to use **<http://www.parcelabler.com/>**, a website that allows you to copy and paste a class and provides you a version of that class with the Parcelable interface implemented!
+
+<p class="alert alert-danger">Bundles are only supposed to store small amounts of information (a few variables); and by extension Parcelable objects should also only include a few attributes. **Never** make an object that contains an array of a list into a Parcelable! Complex or variable-length data should instead be persisted separate from the Activity (e.g., in a database), with identifiers passed in Bundles instead.</p>
+
+
+### The Back Stack {-}
 But what happens when we hit the "back" button? The Activity exits! _Why?_ Because "back" normally says to "leave the Activity"&mdash;we only had one Activity, just multiple fragments.
 
-Recall that the Android system may have lots of Activities (even across multiple apps!) with the user moving back and forth between them. As described in [lecture2]{#back-tasks}, each new Activity is associated with a "task" and placed on a **stack**^[http://developer.android.com/images/fundamentals/diagram_backstack.png]. When the "back" button is pressed, that Activity is popped off the stack, and the user is taken to the Activity that is now at the top.
+Recall that the Android system may have lots of Activities (even across multiple apps!) with the user moving back and forth between them. As described in [Lecture 3](#back-tasks), each new Activity is associated with a "task" and placed on a **stack**^[http://developer.android.com/images/fundamentals/diagram_backstack.png]. When the "back" button is pressed, that Activity is popped off the stack, and the user is taken to the Activity that is now at the top.
 
 Fragments by default are not part of this "back-stack", since they are just components of Activities. However, you _can_ [specify]((https://developer.android.com/training/implementing-navigation/temporal.html#back-fragments)) that a transaction should include the Fragment change as part of the stack navigation by calling `FragmentTransaction#addToBackStack()` as part of your transaction (e.g., right before you `commit()`):
 
@@ -225,10 +238,84 @@ Fragments by default are not part of this "back-stack", since they are just comp
 getSupportFragmentManager().beginTransaction()
                            .add(detailFragment, "detail")
                            // Add this transaction to the back stack
-                           .addToBackStack()
+                           .addToBackStack(null)
                            .commit();
 ```
 
 Note that the "back" button will cause _the entire transaction_ to "reverse". Thus if you performed a `remove()` then an `add()` (e.g., via a `replace()`), then hitting "back" will cause the the previously added Fragment to be removed _and_ the previously removed Fragment to be added.
 
-- `FragmentManager` also includes numerous methods for manually manipulating the back-stack (e.g., "popping" off transactions) if necessary.
+- `FragmentManager` also includes numerous methods for manually manipulating the back-stack (e.g., "popping" off transactions) if you want to include custom navigation elements such as extra "back" buttons.
+
+## Dialogs `r #[30min]`
+We have previously provided feedback to users via simple pop-ups such as [Toasts](https://developer.android.com/guide/topics/ui/notifiers/toasts.html) or [Snackbars](https://developer.android.com/training/snackbar/showing.html). However, sometimes you would like to show a more complex "pop-up" View&mdash;perhaps one that requires additional interaction.
+
+A [___Dialog___](https://developer.android.com/guide/topics/ui/dialogs.html)^[https://developer.android.com/guide/topics/ui/dialogs.html] is a "pop-up" [modal](https://en.wikipedia.org/wiki/Modal_window) (a view which doesn't fill the screen) that either asks the user to make a decision or provides some additional information. At it's most basic, Dialogs are similar to the `window.alert()` function and its variants used in JavaScript.
+
+There is a base `Dialog` class, but almost always we use a pre-defined subclass instead (similar to how we've use `AppCompatActivity`). [`AlertDialog`](https://developer.android.com/reference/android/support/v7/app/AlertDialog.html)^[https://developer.android.com/reference/android/support/v7/app/AlertDialog.html] is the most common version: a simple message with buttons you can respond with (confirm, cancel, etc).
+
+We don't actually instantiate an `AlertDialog` directly (in fact, it's constructors are `protected` so inaccessible to us). Instead we use a helper _factory_ class called an [`AlertDialog.Builder`](https://developer.android.com/reference/android/support/v7/app/AlertDialog.Builder.html). There are a number of steps to use a builder to create a Dialog:
+
+1. Instantiate a new builder for this particular dialog. The constructor takes in a `Context` under which to create the Dialog. Note that once the builder is initialized, you can create and recreate the same dialog with a single method call&mdash;that's the benefits of using a factory.
+
+2. Call "setter" methods on the builder in order to specify the title, message, etc. for the dialog that will appear. This can be hard-coded text or a reference to an XML String resource (as a user-facing String, the later is more appropriate for published applications). Each setter method will return a reference to the builder, making it easy to chain them.
+
+3. Use appropriate setter methods to specify callbacks (via a `DialogInterface.OnClickListener`) for individual buttons. Note that the "positive" button normally has the text `"OK"`, but this can be customized.
+
+4. Finally, actually instantiate the `AlertDialog` with the `builder.create()` method, using the **`show()`** method to make the dialog appear on the screen!
+
+```java
+AlertDialog.Builder builder = new AlertDialog.Builder(this);
+builder.setTitle("Alert!")
+       .setMessage("Danger Will Robinson!");
+builder.setPositiveButton("I see it!", new DialogInterface.OnClickListener() {
+  public void onClick(DialogInterface dialog, int id) {
+    // User clicked OK button
+  }
+});
+
+AlertDialog dialog = builder.create();
+dialog.show();
+```
+
+<p class="alert alert-info">An important part of learning to develop Android applications is being able to read the API to discover effective options. For example, can you read the [AlertDialog.Builder API](https://developer.android.com/reference/android/support/v7/app/AlertDialog.Builder.html) and determine how to add a "cancel" button to the alert?</p>
+
+While `AlertDialog` is the most common Dialog, Android supports other subclasses as well. For example, [`DatePickerDialog`](https://developer.android.com/reference/android/app/DatePickerDialog.html) and [`TimePickerDialog`](https://developer.android.com/reference/android/app/TimePickerDialog.html) provide pre-defined user interfaces for picking a date or a time respectively. See the [Pickers guide](https://developer.android.com/guide/topics/ui/controls/pickers.html) for details about how to utilize these.
+
+
+### DialogFragments {-}
+The process described above will create and show a Dialog, but that dialog has a few problems in how it interacts with the rest of the Android framework&mdash;namely with the lifecycle of the Activity in which it is embedded.
+
+For example, if the device changes configurations (e.g., is rotated from portrait to landscape) then the Activity is destroyed and re-created (it's `onCreate()` method will be called again). But if this happens while a Dialog is being shown, then a `android.view.WindowLeaked` error will occur and the Dialog is lost!
+
+To avoid these problems, we need to have a way of giving that Dialog its own lifecycle which can interact with the the Activity's lifecycle... sort of like making it a _modular_ piece of an Activity... that's right, we need to make it a Fragment! Specifically, we will use a subclass of Fragment called [`DialogFragment`](http://developer.android.com/guide/topics/ui/dialogs.html#DialogFragment), which is a Fragment that displays as a modal dialog floating above the Activity (no extra work needed).
+
+Just like with the previous Fragment examples, we'll need to create our own subclass of `DialogFragment`. It's often easiest to make this a _nested class_ if the Dialog won't be doing a lot of work (e.g., shows a simple confirmation).
+
+Rather than specifying a Fragment layout through `onCreateView()`, we can instead override the `onCreateDialog()` callback to specify a `Dialog` object that will provide the view hierarchy for the Fragment. This Dialog can be created with the `AlertDialog.Builder` class as before!
+
+```java
+public static class MyDialogFragment extends DialogFragment {
+
+    public static HelloDialogFragment newInstance() {
+        Bundle args = new Bundle();
+        HelloDialogFragment fragment = new HelloDialogFragment();
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        //...
+        AlertDialog dialog = builder.create();
+        return dialog;
+    }
+}
+```
+
+Finally, we can actually show this `DialogFragment` by instantiating it (remember to use a `newInstance()` factory method!) and then calling the `show()` method on it to make it show as a Dialog. The `show()` method takes in a `FragmentManager` used to manage this transaction. By using a DialogFragment, it is possible to change the device configuration (rotate the phone) and the Dialog is retained.
+
+Here's the other neat trick: a `DialogFragment` is just a `Fragment`. That means we can use it _anywhere_ we normally used Fragments... including embedding them into layouts! For example if you made the `DetailsFragment` subclass `DialogFragment` instead of `Fragment`, it would be able to be used in the exact same as before. It's still a Fragment, just with extra features&mdash;one of which is a `show()` method that will show it as a Dialog!
+
+  - Use `setStyle(DialogFragment.STYLE_NO_TITLE, android.R.style.Theme_Holo_Light_Dialog)` to make the Fragment look a little more like a dialog.
+
+<p class="alert alert-info">The truth is that Dialogs are not very commonly used in Android (compare to other GU systems). Apps are more likely to just dynamically change the Fragment or Activity being shown, rather than interrupt the user flow by creating a pop-up modal. And 80% of the Dialogs that _are_ used are AlertDialogs. Nevertheless, it is worth being familiar with this process and the patterns it draws upon!</p>
