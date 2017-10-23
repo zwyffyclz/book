@@ -62,3 +62,5 @@ Your task is to fill in the missing pieces of code, following the instructions b
     - And finally, because we've changed the outgoing message, set the text of the `mOutEditText` TextView to be the (now empty) `mOutStringBuffer`.
 
 And that's it! You should now have a working chat system! Search for and connect to someone else's device and try saying "hello"!
+
+<p class="alert alert-warning">When you finish the lab, you should probably _turn off the Bluetooth radio_ on your device. Android's Bluetooth implementation has [critical security flaws](https://arstechnica.com/information-technology/2017/09/bluetooth-bugs-open-billions-of-devices-to-attacks-no-clicking-required/) that can be hacked to execute malicious code. Unless you've patched with the latest security update (meaning you have the latest device), it is recommended that you avoid using Bluetooth.</p> 
