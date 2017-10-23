@@ -1,15 +1,13 @@
 # Bluetooth
-<p class="alert alert-danger">This chapter is out of date and will be updated soon.</p>
-
 In this chapter you will learn about some of the pieces for creating a connection between two co-located devices using [Bluetooth](https://en.wikipedia.org/wiki/Bluetooth). This will let you gain some familiarity with the [Bluetooth API](https://developer.android.com/guide/topics/connectivity/bluetooth.html), as well as further practice working with _Intents_.
 
-<p class="alert alert-info">The code for this tutorial can be found at <https://github.com/info448-s17/lab-bluetooth>.</p>
+<p class="alert alert-info">The code for this tutorial can be found at <https://github.com/info448/lab-bluetooth>.</p>
 
 This tutorial involves filling in the remaining pieces from a Sample Project provided by Google. Google includes [lots of samples](http://developer.android.com/samples/index.html) demonstrating how to use particular pieces of functionality; reading and adapting the provided projects is a great way to learn new skills. There are _a lot_ of comments, though that sometimes makes it hard to follow all the pieces. Read carefully!
 
 - Also be sure to open the [API documentation](https://developer.android.com/guide/topics/connectivity/bluetooth.html) for reference!
 
-<p class="alert alert-warning">The emulator doesn't support Bluetooth, so you will need to run this project on a physical device.</p>
+<p class="alert alert-danger">The emulator doesn't support Bluetooth, so you will need to run this project on a physical device!</p>
 
 Your task is to fill in the missing pieces of code, following the instructions below. I've marked each location with a `TODO` comment, which should show up in blue in Android Studio.
 

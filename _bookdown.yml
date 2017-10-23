@@ -15,8 +15,8 @@ rmd_files:
   - material.Rmd
   - fragments.Rmd
   - intents.Rmd
+  - notifications-settings.Rmd
   # - menus-dialogs.Rmd
-  # - notifications-settings.Rmd
   # - loaders.Rmd
   # - databases-providers.Rmd
   # - files-permissions.Rmd
@@ -29,8 +29,8 @@ rmd_files:
   # #- debugger.Rmd
   - styles.Rmd
   - viewpager.Rmd
+  - bluetooth.Rmd
   # - accessibility.Rmd
-  # - bluetooth.Rmd
   # - maps.Rmd
   # - memory.Rmd
   # - multitouch.Rmd
