@@ -16,8 +16,7 @@ rmd_files:
   - fragments.Rmd
   - intents.Rmd
   - notifications-settings.Rmd
-  # - menus-dialogs.Rmd
-  # - loaders.Rmd
+  - loaders.Rmd
   # - databases-providers.Rmd
   # - files-permissions.Rmd
   # - location.Rmd

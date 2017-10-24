@@ -1,4 +1,4 @@
-# Databases and Providers {#databases}
+# Providers and Databases {#databases}
 <p class="alert alert-danger">This chapter is out of date and will be updated soon.</p>
 
 This lecture provides an in-depth discussion of working with [**Databases**](https://developer.android.com/training/basics/data-storage/databases.html) and [**Content Providers**](https://developer.android.com/guide/topics/providers/content-providers.html) in Android. _Accessing_ Content Providers (via a Loader) was discussed in a [previous lecture](#content-providers-intro). This lecture will instead talk about how to make your own database and a provider for it.
@@ -7,7 +7,7 @@ Databases are appropriate when you want to store data _locally_ on the device (e
 
 <p class="alert alert-info">This lecture references code found at <https://github.com/info448-s17/lecture17-databases>.</p>
 
-<p class="alert alert-warning">Note that the intial version of this program accesses the device's User Dictionary, which is only available to on API 22 (Lollipop) _or earlier_. The tutorial does support all versions of Android.</p>
+<p class="alert alert-warning">Note that the initial version of this program accesses the device's User Dictionary, which is only available to on API 22 (Lollipop) _or earlier_. The tutorial does support all versions of Android.</p>
 
 ## Review: Providers and Loaders
 As discussed previously, a **Content Provider** is an abstraction for a source of structured data (like a database, but also possibly files, internet resources, etc). It acts as an interface for interacting with that data, supporting the developing in reading, adding to, updating, or deleting data from the source (e.g., the basic [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations).

@@ -1,42 +1,45 @@
-# Providers and Loaders
-<p class="alert alert-danger">This chapter is out of date and will be updated soon.</p>
+# Providers and Loaders {#loaders}
 
-This lecture discusses how to access data from a **Content Provider** using a [**Loader**](https://developer.android.com/guide/components/loaders.html). A _Content Provider_ is an abstraction of a data base or other data store, allowing us easily systematically work with that data in Java (rather than in a separate data manipulation language such as SQL). A _Loader_ is then used to efficiently perform this data access in the background (off the UI Thread), while also easily connecting that data to Views.
+This lecture discusses how to access data from a **Content Provider** using a [**Loader**](https://developer.android.com/guide/components/loaders.html). A _Content Provider_ is an abstraction of a database or other data store, allowing us easily and systematically work with that data in Java (rather than in a separate data manipulation language such as SQL). A _Loader_ is then used to efficiently perform this data access in the background (off the UI Thread), while also easily connecting that data to Views. This lecture discusses how to use a Loader to access the data in an existing Content Provider; the next lecture details how to create Content Providers from scratch.
 
-<p class="alert alert-info">This lecture references code found at <https://github.com/info448-s17/lecture07-loaders>.</p>
+<p class="alert alert-info">This lecture references code found at <https://github.com/info448/lecture09-loaders>. Note that this demo accesses the device's User Dictionary, which is only available to general apps on API 22 (Lollipop) **or earlier**. This tutorial thus does not support all versions of Android. You can instead use an emulator running API 22 or earlier.</p>
+
 
 ## Content Providers {#content-providers-intro}
-Consider the `WordListFragment` utilized by the example code (though these concepts apply to any Fragment or Activity). This Fragment includes a `ListView` that shows a list of words. Recall that a `ListView` utilizes the **model-view-controller** architecture... and in this case, the "model" (data) is a hard-coded list of array of words. But there are other lists of words as well! Entire databases of words! Previous lectures have discussed how to use _network requests_ to access online data APIs, but there are also databases (of words no less) built into your Android phone.
+The example starter code uses a `ListView` that shows a list of words. Recall that a `ListView` utilizes the **model-view-controller** architecture... and in this case, the "model" (data) is a hard-coded list of array of words. But there are other lists of words as well! Entire databases of words! Previous lectures have discussed how to use _network requests_ to access online data APIs, but there are also databases (of words no less) built into your Android phone.
 
-For example, Android keeps track of the list of the spellings of "non-standard" words in what is called the **User Dictionary**. You can view this list on the device at `Settings > Language & Input > Personal Dictionary`. You can even use this Settings interface to add new words to the dictionary (e.g., "embiggen", "cromulent", "fleek").
+For example, Android keeps track of the list of the spellings of "non-standard" words in what is called the **User Dictionary**. You can view this list on the device at `Settings > Language & Input > Personal Dictionary`. You can even use this Settings interface to add new words to the dictionary (e.g., "embiggen", "cromulent", "covfefe").
+
+Note that the User Dictionary keeps track of a  [**database**](https://developer.android.com/guide/topics/providers/content-provider-basics.html#ClientProvider) of words. You can think of this database as being like a single SQL table: it's a set of _entries_ (rows) each of which have some _values_ (columns). The primary key of the table is named (by convention) **`ID`**.
 
 
-<!-- check from here -->
-Note that the User Dictionary keeps track of a  [**database**](http://developer.android.com/guide/topics/providers/content-provider-basics.html#Basics) of words. You can think of this database as being like a single SQL table: it's a set of _entries_ (rows) each of which have some _values_ (columns). The primary key of the table is named (by convention) `ID`.
+Since this data is stored in (essentially) a simple SQL table, it is possible for us to access and modify it programmatically&mash;moreover, the Android framework allows us to do this without needing to know or write SQL! For example, we can access this list of words in order to show them in the ListView.
 
-<p class="alert alert-info">While you don't need to know SQL to utilize a built-in database like the User Dictionary, it helps to have a passing familiarity with relational databases (e.g., what is taught in the iSchool's INFO 340 course).</p>
+<p class="alert alert-info">While you don't need to know SQL to utilize a built-in database like the User Dictionary, it helps to have a passing familiarity with relational databases and their terminology to intuit about the organization of the data.</p>
 
-Since this data is stored in a (essentially) a simple SQL table, it is possible for us to access and modify it programmatically&mash;moreover, the Android framework allows us to do this without needing to know or write SQL! For example, we can access this list of words in order to show them in the WordFragment's ListView.
+To do this, we'll need to request permission to access the database, just as we asked permission to access the Internet. Include the following in the _Manifest_:
 
-- To do this, we'll need to request permission to access the database, just as we asked permission to access the Internet. Include the following in the _Manifest_:
+```xml
+<uses-permission android:name="android.permission.READ_USER_DICTIONARY"/>
+```
 
-	```xml
-	<uses-permission android:name="android.permission.READ_USER_DICTIONARY">
-	```
+Although the words are stored in a database, we don't know the _exact_ format of this database (e.g., the exact table or column names, or even whether it is an SQL database or just a `.csv` file!). We want to avoid having to write code that only works with a specific format, especially as the words may be stored in different kinds of databases on different devices or across different versions of Android. (The Android framework does include support for working directly with a local `SQLite` database, as discussed in the next chapter).
 
-Although the words are stored in a database, we don't know the _exact_ format of this database (e.g., exact table or column names, or even whether it is an SQL database or just a `.csv` file!). We want to avoid having to write code that only works with a specific format, especially as the words may be stored in different kinds of databases on different devices or across different versions of Android. (The Android framework does include support for working directly with a local `SQLite` database, but it is a lot more work, requires knowing SQL, and produces a more fragile application).
+In order to avoid relying on the specific format of how some data is stored, Android offers an ___abstraction___ in the form of a [**Content Provider**](https://developer.android.com/guide/topics/providers/content-providers.html)^[https://developer.android.com/guide/topics/providers/content-providers.html]. A Content Provider offers an interface to interact with structured data, whether that data is stored in a database, in a file, in _multiple_ files, online, or somewhere else. You can thus think of "a Content Provider" as meaning "a data source" (e.g., the source/provider of content)!
 
-In order to avoid relying on the specific format of how some data is stored, Android offers an ___abstraction___ in the form of a [**Content Provider**](http://developer.android.com/guide/topics/providers/content-providers.html). A Content Provider offers an interface to interact with structured data, whether that data is stored in a database, in a file, in _multiple_ files, online, or somewhere else. You can thus think of "a Content Provider" as meaning "a data source" (e.g., the source/provider of content)!
-
-- It is possible to create your own Content Providers (described in a later lecture), but this lecture focuses purely on _utilizing_ existing Providrs.
+- It is possible to create your own Content Providers (described in the next chapter), but this lecture focuses purely on _utilizing_ existing Providers.
 
 All Content Providers (data sources) have a **URI** ([Universal Resource Identifier](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier), a generalization of a URL used for resources not necessarily on the Internet). It is possible to _query_ this URI, similar in concept to how web APIs are accessed via queries to their URI endpoints. In particular, Content Provider URIs utilize the **`content://`** protocol (instead of `https://`), since the their data is accessed as via "content requests" rather than "HTTP requests".
 
-The `URI` for the Dictionary's content is defined by the constant `UserDictionary.Words.CONTENT_URI`. We utilize constants to refer to URIs and paths to make it easier to refer to them and to generalize across devices that may have different directory structures.
+The `URI` for the Dictionary's content is defined by the constant [`UserDictionary.Words.CONTENT_URI`](https://developer.android.com/reference/android/provider/UserDictionary.Words.html). We utilize constants to refer to URIs and paths to make it easier to refer to them and to generalize across devices that may have different directory structures.
 
-We are able to access this Content Provider via a [`ContentResolver`](https://developer.android.com/reference/android/content/ContentResolver.html). This class provides methods for accessing the data in a provider (represented as a `ContentProvider` object). Each Context has a singleton ContentResolver, which is accessed via the `getContentResolver()` method (note that for a Fragment, the Context is the containing Activity). The ContentResolver's methods support the basic [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations: `insert()`, `query()`, `update()`, and `delete()`.
+We are able to access this Content Provider via a [`ContentResolver`](https://developer.android.com/reference/android/content/ContentResolver.html). This class provides methods for accessing the data in a provider (represented as a `ContentProvider` object). Each Context has a singleton ContentResolver, which is accessed via the `getContentResolver()` method (note that for a Fragment, the Context is the containing Activity). The ContentResolver's methods support the basic [CRUD](https://en.wikipedia.org/wiki/Create,_read,_update_and_delete) operations: `insert()` (create), `query()` (read), `update()`, and `delete()`.
 
-ContentResolver methods take multiple parameters, supporting the different options available in a generic SQL query. For example, consider the the <a href="http://developer.android.com/reference/android/content/ContentResolver.html#query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">`query()`</a> method:
+```java
+ContentResolver resolver = getContentResolver();
+```
+
+ContentResolver methods take multiple parameters, supporting the different options available in a generic SQL query. For example, consider the the <a href="https://developer.android.com/reference/android/content/ContentResolver.html#query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">`query()`</a> method:
 
 ```java
 getContentResolver().query(
@@ -47,7 +50,7 @@ getContentResolver().query(
 	sortOrder);      // The sort order for the returned rows (as an SQL ORDER BY clause)
 ```
 
-- This is basically a wrapper around an SQL `SELECT` statement!
+- This is basically a wrapper around an SQL `SELECT` statement! But each "part" of that statement are specified as parameter to this method.
 
 The **projection** is a `String[]` of all the "columns" (attributes) we want to fetch from the data source. This is what you'd put after `SELECT` in SQL. (Note we can pass in `null` to represent `SELECT *`, but that's inefficient&mdash;better to give a list of everything).
 
@@ -55,16 +58,18 @@ The **projection** is a `String[]` of all the "columns" (attributes) we want to 
 
 - Be sure to always select the `_ID` primary key: it will be needed later!
 
-The other parameters can be used to customize the `SELECT` statement. THe "selection" (`WHERE`) clause needs to parameters: the second are values that will be escaped against [SQL injection attacks](https://en.wikipedia.org/wiki/SQL_injection). Passing `null` for any of these parameters will cause the clause to be ignored:
+The other parameters can be used to customize the `SELECT` statement. The "selection" (`WHERE`) clause needs to parameters: the second are values that will be escaped against [SQL injection attacks](https://en.wikipedia.org/wiki/SQL_injection). Passing `null` for any of these parameters will cause the clause to be ignored:
 
 ```java
-ContentResolver resolver = getActivity().getContentResolver();
-String[] projection = new String[] { UserDictionary.Words.WORD, UserDictionary.Words._ID };
+String[] projection = new String[] {
+	UserDictionary.Words.WORD,
+	UserDictionary.Words.FREQUENCY,
+	UserDictionary.Words._ID
+};
 resolver.query(UserDictionary.Words.CONTENT_URI, projection, null, null, null);
 ```
 
 So overall, the query is breaking apart the components SQL `SELECT` statement into different pieces as parameters to a method, so you don't _quite_ have to write the selection yourself. Moreover, this method _abstracts_ the specific query language, allowing the same queries to be used on different formats of database (`SQLite`, `PostgreSQL`, files, etc).
-
 
 ## Cursors
 The `ContentResolver#query()` method returns a [**`Cursor`**](http://developer.android.com/reference/android/database/Cursor.html). A `Cursor` provides an interface to the list of records in a database (e.g., those returned by the query). A `Cursor` also behaves like an `Iterator` in Java: it keeps track of which record is currently being accessed (e.g., what the `i` would be in a for loop). You can think of it as a "pointer" to a particular record, like the cursor on a screen.
@@ -74,10 +79,9 @@ We call methods on the `Cursor` to specify which record we want it to "point" to
 ```java
 cursor.moveToFirst(); //move to the first item
 String field0 = cursor.getString(0); //get the first field (column you specified) as a String
-String name = cursor.getString(cursor.getColumnIndexOrThrow("word")); //get the "word" field as a String
+String word = cursor.getString(cursor.getColumnIndexOrThrow("word")); //get the "word" field as a String
 cursor.moveToNext(); //go to the next item
 ```
-
 
 The nice thing about `Cursors` though is that they can easily be fed into `AdapterViews` by using a [`CursorAdapter`](http://developer.android.com/reference/android/widget/CursorAdapter.html) (as opposed to the `ArrayAdapter` we've used previously). The [**`SimpleCursorAdapter`**](http://developer.android.com/reference/android/widget/SimpleCursorAdapter.html) is a concrete implementation that is almost as easy to use as an `ArrayAdapter`:
 
@@ -90,58 +94,95 @@ You instantiate a new `SimpleCursorAdapter`, passing it:
 5. A matching list of View resource `ids` (which should all be `TextViews`) to assign each column's value to. This is the "mapping" that the Adapter will perform (from projection columns to TextView contents).
 6. Any additional option flags (`0` means no flags, and is the correct option for us).
 
-Then we can use this adapter for the ListView in place of the `ArrayAdapter`!
-
-
-## Loaders
-In order to get the `Cursor` to pass into the adapter, we need to `.query()` the database. But we'll be doing this a lot, and so would like to do it off the UI Thread&mdash;database accessing is slow! And every time we do that query (or any other database manipulation), we want to update the `Adapter` so that the changes to the list show up.
-
-In order to easily update your list with new data loaded on a background thread, we're going to use a class called a [`Loader`](http://developer.android.com/guide/components/loaders.html). This is basically a wrapper around `ASyncTask`, but one that lets you execute a backgroup task repeatedly _whenever the data source changes_. In particular, Android provides a [`CursorLoader`](http://developer.android.com/reference/android/content/CursorLoader.html) specifically used to load data from ContentProviders through Cursors&mdash;whenever the content changes, a new Cursor is produced which can be "swapped" into the adapter.
-
-To use a `CursorLoader`, we need to specify that our _Fragment_ implements the [`LoaderManager.LoaderCallback<Cursor>`](http://developer.android.com/reference/android/support/v4/app/LoaderManager.LoaderCallbacks.html) interface&mdash;basically saying that this fragment can react to Loader events.
-
-- Loaders need to work with Fragments, unless the Activity subclasses [`FragmentActivity`](http://developer.android.com/reference/android/support/v4/app/FragmentActivity.html) (as `AppCompatActivity` does) and thereby provides the "Fragment" capabilities needed to use a `Loader`. So we can use Loaders in _our_ Activities or Fragments.
-
-<!-- clean up below -->
-
-We will need to fill in the interfaces callbacks functions in order to use the `CursorLoader`:
-
-- In `onCreateLoader()` we specify what the Loader should _do_. Here we would instantiate and return a `new CursorLoader(...)` that queries the `ContentProvider`. This looks a lot like the `.query()` method we wrote earlier, but will run on a background thread!
-
-- In the `onLoadFinished()` callback, we can `swap()` the `Cursor` into our `SimpleCursorAdapter` in order to feed that model data into our controller (for display in the view). See the [guide](http://developer.android.com/guide/components/loaders.html) for more details.
-
-- In the `onLoaderReset()` callback just swap in `null` for our Cursor, since there now is no content to show (the loaded data has been "reset").
-
-
-Finally, in order to actually _start_ our background activity, we'll use the `getLoaderManager().initLoader(...)` method. This is similar in flavor to the `AsyncTask.execute()` method we've used before (using a manager similar to the `FragmentManager`).
-
 ```java
-getLoaderManager().initLoader(0, null, this);
+adapter = new SimpleCursorAdapter(
+                this,
+                R.layout.list_item_layout, //item to inflate
+                cursor, //cursor to show
+                new String[] {UserDictionary.Words.WORD, UserDictionary.Words.FREQUENCY}, //fields to display
+				new int[] {R.id.txt_list_item, R.id.txt_item_freq},                       //where to display them
+                0); //flags
 ```
 
-The first parameter to the `initLoader()` method is an id number for _which cursor you want to load_, and is passed in as the first param to `onCreateLoader()` (or is accessible via `Loader#getId()`). This allows you to have multiple Loaders using the same callback function (e.g., a Fragment can handle multiple Loaders for multiple data sources). The second param is a `Bundle` of args, and the third is the `LoaderCallbacks` (e.g., who handles the results)!
+Then we can use this adapter for the ListView in place of the `ArrayAdapter`!
+
+## Loaders
+In order to get the `Cursor` to pass into the adapter, we need to `.query()` the database. But we want to do this a lot in fact, every time the database updates, we'd like to be able to query it again so we can update the Adapter and have the changes show up! Additionally, accessing a database can be _slow_ (it requires disk access, structuring and submitting SQL calls, and depending on the complexity of the database those queries can take time). Thus, as with network requests, we'd like to perform this query on a _background thread_ so that it doesn't block our application and cause it to stall.
+
+In order to automatically update your list with new data loaded on a background thread, we're going to use a class called a [`Loader`](https://developer.android.com/guide/components/loaders.html). This is basically a wrapper around [`ASyncTask`](https://developer.android.com/reference/android/os/AsyncTask.html) (described in a later chapter), but one that lets you execute a background task repeatedly _whenever the data source changes_. In particular, Android provides a [`CursorLoader`](http://developer.android.com/reference/android/content/CursorLoader.html) specifically used to load data from ContentProviders through Cursors&mdash;whenever the content changes, a new Cursor is produced which can be "swapped" into the adapter.
+
+To use a `CursorLoader`, we need to specify that our Activity implements the [`LoaderManager.LoaderCallbacks<Cursor>`](https://developer.android.com/reference/android/support/v4/app/LoaderManager.LoaderCallbacks.html) interface&mdash;basically saying that this fragment can react to Loader events.
+
+<!-- - Loaders need to work with Fragments, unless the Activity subclasses [`FragmentActivity`](https://developer.android.com/reference/android/support/v4/app/FragmentActivity.html) (as `AppCompatActivity` does) and thereby provides the "Fragment" capabilities needed to use a `Loader`. So we can use Loaders in _our_ Activities or Fragments. -->
+
+
+We will need to fill in the interfaces callback functions in order to use the `CursorLoader`:
+
+- In `onCreateLoader()` we specify what the Loader should _do_. Here we will instantiate and return a <a href="https://developer.android.com/reference/android/content/CursorLoader.html#CursorLoader(android.content.Context, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)">`new CursorLoader(...)`</a> that queries the `ContentProvider`. This looks a lot like the `.query()` method we wrote earlier, but will run on a background thread!
+
+	<!-- Note that the callback is also passed an `int id`, which is used to refer to _which_ loader we want to create. This allows you to have multiple loaders (e.g., for multiple lists!) in a single application. -->
+
+- In the `onLoadFinished()` callback, we can use `swapCursor()` to swap passed in `Cursor` into our `SimpleCursorAdapter` in order to feed that model data into our controller (for display in the view). The framework handles any cleanup around the old Cursor.
+
+	<!-- You can call `loader.getId()` to determine which loader finished loading, if you need to determine what adapter to swap into. -->
+
+- In the `onLoaderReset()` callback, we can just swap in `null` for our Cursor, since there now is no content to show (the loaded data has been "reset").
+
+
+Finally, in order to actually _start_ our background loading, we'll use the `getLoaderManager().initLoader(...)` method. This will cause the Android framework to request the creation of a new Loader (by our `onCreateLoader()` method), as well as start that Loader loading! (This uses a manager similar to `FragmentManager`, and is similar in flavor to `AsyncTask.execute()`).
+
+```java
+getSupportLoaderManager().initLoader(0, null, this);
+```
+
+- Use `getSupportLoaderManager()` if you're using the support library (and calling from an Activity; a support library Fragment like we've been using only has the one manager, so you can just use `getLoaderManager()`).
+
+
+The first parameter to the `initLoader()` method is an id number for _which cursor you want to load_&mdash;what is passed in as the first param to `onCreateLoader()` (or is accessible via `Loader#getId()`). This allows you to have multiple Loaders using the same callback function (e.g., to handle multiple Loaders for multiple data sources). The second param is a `Bundle` of args, and the third is the `LoaderCallbacks` (e.g., who handles the results)!
 
 - Note that you can use the `.restartLoader()` method to "recreate" the `CursorLoader` (without losing other references), such as if you want to change the arguments passed to it.
 
-And with that, we can fetch the words from our database on a background thread&mdash;and if we update the words it will automatically change!
+And with that, we can fetch the words from our database on a background thread&mdash;and if we update the words (e.g., through the Language Settings) it will automatically update!
+
 
 ## Other Provider Actions
+The Content Resolver of course allows us to do more than just query and load the data: we can also add, update, or remove entries from the database.
 
-### Adding Words
-To _insert_ a new Word into the `ContentProvider`, we just call a different method on the `ContentResolver`:
+- If we want to _modify_ the contents of the User Dictionary, we will need permission:
+
+	```xml
+	<uses-permission android:name="android.permission.WRITE_USER_DICTIONARY"/>
+	```
+
+To _insert_ (create) a new Word into the ContentProvider, we call the `.insert()` method on the `ContentResolver`. It is passed a [`ContentValues`](http://developer.android.com/reference/android/content/ContentValues.html) object, which is a HashMap almost exactly like a `Bundle` (but it only supports values that can be entered into Content Providers, e.g., no Parcelables).
 
 ```java
-//Example from Google:
-ContentValues mNewValues = new ContentValues();
-mNewValues.put(UserDictionary.Words.APP_ID, "edu.uw.loaderdemo");
-mNewValues.put(UserDictionary.Words.LOCALE, "en_US");
-mNewValues.put(UserDictionary.Words.WORD, word);
-mNewValues.put(UserDictionary.Words.FREQUENCY, "100");
+ContentValues newValues = new ContentValues();
+newValues.put(UserDictionary.Words.WORD, inputText.getText().toString());
+newValues.put(UserDictionary.Words.FREQUENCY, 100);
+newValues.put(UserDictionary.Words.APP_ID, "edu.uw.loaderdemo");
+newValues.put(UserDictionary.Words.LOCALE, "en_US");
 
-Uri mNewUri = getContentResolver().insert(
-		UserDictionary.Words.CONTENT_URI,   // the user dictionary content URI
-		mNewValues                          // the values to insert
+Uri newUri = getContentResolver().insert(
+	   UserDictionary.Words.CONTENT_URI,   // the user dictionary content URI!
+	   newValues                   // the values to insert
 );
 ```
 
-- Note that we specify the "details" of the Word in a [`ContentValues`](http://developer.android.com/reference/android/content/ContentValues.html) object, which is a HashMap almost exactly like a `Bundle` (but only supports values that work with `ContentProviders`)
+- The `insert()` function returns the URI for the _newly inserted row_, e.g. if you want to be able to query and display that content later.
+
+A similar approach is used to _update_ and modify an entry in the Content Provider: call the `.update()` method and pass in a `ContentValues` bundle of values to change:
+
+```java
+ContentValues newValues = new ContentValues();
+newValues.put(UserDictionary.Words.FREQUENCY, newFrequency);
+
+getContentResolver().update(
+		  ContentUris.withAppendedId(UserDictionary.Words.CONTENT_URI, id),
+		  newValues,
+		  null, null); //no selection
+```
+
+- Note that we make sure to update only that particular item by specifying the _URI of that item_. We do this by constructing a new URI representing/identifying that item, effectively by appending `"/:id"` to the URI. This means that we don't need to use the selection criteria (though we could do that as well).
+
+That covers how to utilize and interact with a Content Provider (as a _client_ of that Provider). The next lecture will cover how to implement a Provider for a custom database.
