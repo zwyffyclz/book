@@ -17,8 +17,8 @@ rmd_files:
   - intents.Rmd
   - notifications-settings.Rmd
   - loaders.Rmd
+  - files-permissions.Rmd
   # - databases-providers.Rmd
-  # - files-permissions.Rmd
   # - location.Rmd
   # - services.Rmd
   # - sensors.Rmd
