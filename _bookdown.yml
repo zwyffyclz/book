@@ -18,7 +18,7 @@ rmd_files:
   - notifications-settings.Rmd
   - loaders.Rmd
   - files-permissions.Rmd
-  # - databases-providers.Rmd
+  - databases-providers.Rmd
   # - location.Rmd
   # - services.Rmd
   # - sensors.Rmd
