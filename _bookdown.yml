@@ -19,11 +19,11 @@ rmd_files:
   - loaders.Rmd
   - files-permissions.Rmd
   - databases-providers.Rmd
-  # - location.Rmd
+  - location.Rmd
   # - services.Rmd
   # - sensors.Rmd
   # - animation.Rmd
-  #
+
   - part-labs.Rmd
   # #- debugger.Rmd
   - styles.Rmd
