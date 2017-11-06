@@ -29,8 +29,8 @@ rmd_files:
   - styles.Rmd
   - viewpager.Rmd
   - bluetooth.Rmd
+  - maps.Rmd
   # - accessibility.Rmd
-  # - maps.Rmd
   # - memory.Rmd
   # - multitouch.Rmd
   #
