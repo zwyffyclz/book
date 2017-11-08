@@ -14,24 +14,23 @@ rmd_files:
   - data-views.Rmd
   - material.Rmd
   - fragments.Rmd
-  # - intents.Rmd
-  # - menus-dialogs.Rmd
-  # - notifications-settings.Rmd
-  # - loaders.Rmd
-  # - databases-providers.Rmd
-  # - files-permissions.Rmd
-  # - location.Rmd
+  - intents.Rmd
+  - notifications-settings.Rmd
+  - loaders.Rmd
+  - files-permissions.Rmd
+  - databases-providers.Rmd
+  - location.Rmd
   # - services.Rmd
   # - sensors.Rmd
   # - animation.Rmd
-  #
+
   - part-labs.Rmd
   # #- debugger.Rmd
   - styles.Rmd
   - viewpager.Rmd
+  - bluetooth.Rmd
+  - maps.Rmd
   # - accessibility.Rmd
-  # - bluetooth.Rmd
-  # - maps.Rmd
   # - memory.Rmd
   # - multitouch.Rmd
   #

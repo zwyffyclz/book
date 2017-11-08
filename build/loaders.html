@@ -32,8 +32,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   
   <link rel="shortcut icon" href="img/android_icon_transparent.png" type="image/x-icon">
-<link rel="prev" href="styles-themes.html">
-<link rel="next" href="bluetooth.html">
+<link rel="prev" href="notifications-settings.html">
+<link rel="next" href="files-and-permissions.html">
 <script src="libs/jquery-2.2.3/jquery.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
 <link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
@@ -327,82 +327,157 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="fragment-viewpager" class="section level1">
-<h1><span class="header-section-number">Lecture 14</span> Fragments: ViewPager</h1>
-<p>In this chapter, you will practice working with Fragments and layouts. Specifically, you will modify the Movie application from <a href="fragments.html#fragments">Lecture 6</a> so that it uses a <a href="https://developer.android.com/training/animation/screen-slide.html"><strong>ViewPager</strong></a>, an interactive View offered by the Android Support Library that will allow you to “page” (swipe) through different Fragments. You will modify the application so that the user can swipe through a “search” screen, the list of search results, and the details about a particular movie.</p>
+<div id="loaders" class="section level1">
+<h1><span class="header-section-number">Lecture 9</span> Providers and Loaders</h1>
+<p>This lecture discusses how to access data from a <strong>Content Provider</strong> using a <a href="https://developer.android.com/guide/components/loaders.html"><strong>Loader</strong></a>. A <em>Content Provider</em> is an abstraction of a database or other data store, allowing us easily and systematically work with that data in Java (rather than in a separate data manipulation language such as SQL). A <em>Loader</em> is then used to efficiently perform this data access in the background (off the UI Thread), while also easily connecting that data to Views. This lecture discusses how to use a Loader to access the data in an existing Content Provider; a <a href="databases.html#databases">later lecture</a> details how to create Content Providers from scratch.</p>
 <p class="alert alert-info">
-The code for this tutorial can be found at <a href="https://github.com/info448/lab-viewpager" class="uri">https://github.com/info448/lab-viewpager</a>. Note that it is also possible to complete this tutorial directly on top of the <code>complete</code> branch of the Lecture 6 demo code.
+This lecture references code found at <a href="https://github.com/info448/lecture09-loaders" class="uri">https://github.com/info448/lecture09-loaders</a>. Note that this demo accesses the device’s User Dictionary, which is only available to general apps on API 22 (Lollipop) <strong>or earlier</strong>. This tutorial thus does not support all versions of Android. You can instead use an emulator running API 22 or earlier.
 </p>
-<p class="alert alert-warning">
-IMPORTANT NOTE: you should <strong>not</strong> modify the provided <code>MovieListFragment</code> or the <code>DetailFragment</code> classes (those Fragments are self-contained and so can be used in multiple layouts!). You will need to create one new Fragment though, and make substantial modifications to the <code>MainActivity</code>
+<div id="content-providers-intro" class="section level2">
+<h2><span class="header-section-number">9.1</span> Content Providers</h2>
+<p>The example starter code uses a <code>ListView</code> that shows a list of words. Recall that a <code>ListView</code> utilizes the <strong>model-view-controller</strong> architecture… and in this case, the “model” (data) is a hard-coded list of array of words. But there are other lists of words as well! Entire databases of words! Previous lectures have discussed how to use <em>network requests</em> to access online data APIs, but there are also databases (of words no less) built into your Android phone.</p>
+<p>For example, Android keeps track of the list of the spellings of “non-standard” words in what is called the <strong>User Dictionary</strong>. You can view this list on the device at <code>Settings &gt; Language &amp; Input &gt; Personal Dictionary</code>. You can even use this Settings interface to add new words to the dictionary (e.g., “embiggen”, “cromulent”, “covfefe”).</p>
+<p>Note that the User Dictionary keeps track of a <a href="https://developer.android.com/guide/topics/providers/content-provider-basics.html#ClientProvider"><strong>database</strong></a> of words. You can think of this database as being like a single SQL table: it’s a set of <em>entries</em> (rows) each of which have some <em>values</em> (columns). The primary key of the table is named (by convention) <strong><code>ID</code></strong>.</p>
+<p>Since this data is stored in (essentially) a simple SQL table, it is possible for us to access and modify it programmatically&amp;mash;moreover, the Android framework allows us to do this without needing to know or write SQL! For example, we can access this list of words in order to show them in the ListView.</p>
+<p class="alert alert-info">
+While you don’t need to know SQL to utilize a built-in database like the User Dictionary, it helps to have a passing familiarity with relational databases and their terminology to intuit about the organization of the data.
 </p>
-<div id="define-a-searchfragment" class="section level2">
-<h2><span class="header-section-number">14.1</span> Define a SearchFragment</h2>
-<p>Your <code>ViewPager</code> will need to support three different Fragments. While the <code>MovieFragment</code> and <code>DetailFragment</code> have been defined already, you will need to create a third.</p>
-<p>Create a new Fragment called <strong><code>SearchFragment</code></strong> (use the <code>File &gt; New &gt; Fragment &gt; Fragment (Blank)</code> menu in Android Studio). Your <code>SearchFragment</code> will need to include the following components</p>
+<p>To do this, we’ll need to request permission to access the database, just as we asked permission to access the Internet. Include the following in the <em>Manifest</em>:</p>
+<div class="sourceCode"><pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;uses-permission</span><span class="ot"> android:name=</span><span class="st">&quot;android.permission.READ_USER_DICTIONARY&quot;</span><span class="kw">/&gt;</span></code></pre></div>
+<p>Although the words are stored in a database, we don’t know the <em>exact</em> format of this database (e.g., the exact table or column names, or even whether it is an SQL database or just a <code>.csv</code> file!). We want to avoid having to write code that only works with a specific format, especially as the words may be stored in different kinds of databases on different devices or across different versions of Android. (The Android framework does include support for working directly with a local <code>SQLite</code> database, as discussed in the next chapter).</p>
+<p>In order to avoid relying on the specific format of how some data is stored, Android offers an <strong><em>abstraction</em></strong> in the form of a <a href="https://developer.android.com/guide/topics/providers/content-providers.html"><strong>Content Provider</strong></a><a href="#fn36" class="footnoteRef" id="fnref36"><sup>36</sup></a>. A Content Provider offers an interface to interact with structured data, whether that data is stored in a database, in a file, in <em>multiple</em> files, online, or somewhere else. You can thus think of “a Content Provider” as meaning “a data source” (e.g., the source/provider of content)!</p>
+<ul>
+<li>It is possible to create your own Content Providers (described in a later chapter), but this lecture focuses purely on <em>utilizing</em> existing Providers.</li>
+</ul>
+<p>All Content Providers (data sources) have a <strong>URI</strong> (<a href="https://en.wikipedia.org/wiki/Uniform_Resource_Identifier">Universal Resource Identifier</a>, a generalization of a URL used for resources not necessarily on the Internet). It is possible to <em>query</em> this URI, similar in concept to how web APIs are accessed via queries to their URI endpoints. In particular, Content Provider URIs utilize the <strong><code>content://</code></strong> protocol (instead of <code>https://</code>), since the their data is accessed as via “content requests” rather than “HTTP requests”.</p>
+<p>The <code>URI</code> for the Dictionary’s content is defined by the constant <a href="https://developer.android.com/reference/android/provider/UserDictionary.Words.html"><code>UserDictionary.Words.CONTENT_URI</code></a>. We utilize constants to refer to URIs and paths to make it easier to refer to them and to generalize across devices that may have different directory structures.</p>
+<p>We are able to access this Content Provider via a <a href="https://developer.android.com/reference/android/content/ContentResolver.html"><code>ContentResolver</code></a>. This class provides methods for accessing the data in a provider (represented as a <code>ContentProvider</code> object). Each Context has a singleton ContentResolver, which is accessed via the <code>getContentResolver()</code> method (note that for a Fragment, the Context is the containing Activity). The ContentResolver’s methods support the basic <a href="https://en.wikipedia.org/wiki/Create,_read,_update_and_delete">CRUD</a> operations: <code>insert()</code> (create), <code>query()</code> (read), <code>update()</code>, and <code>delete()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">ContentResolver resolver = <span class="fu">getContentResolver</span>();</code></pre></div>
+<p>ContentResolver methods take multiple parameters, supporting the different options available in a generic SQL query. For example, consider the the <a href="https://developer.android.com/reference/android/content/ContentResolver.html#query(android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)"><code>query()</code></a> method:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">getContentResolver</span>().<span class="fu">query</span>(
+    uri,              <span class="co">// The content URI</span>
+    projection,      <span class="co">// The an array of columns to return for each row</span>
+    selectionClause  <span class="co">// Selection criteria (as an SQL WHERE clause)</span>
+    selectionArgs,   <span class="co">// An array of values that can be injected into the selection clause</span>
+    sortOrder);      <span class="co">// The sort order for the returned rows (as an SQL ORDER BY clause)</span></code></pre></div>
+<ul>
+<li>This is basically a wrapper around an SQL <code>SELECT</code> statement! But each “part” of that statement are specified as parameter to this method.</li>
+</ul>
+<p>The <strong>projection</strong> is a <code>String[]</code> of all the “columns” (attributes) we want to fetch from the data source. This is what you’d put after <code>SELECT</code> in SQL. (Note we can pass in <code>null</code> to represent <code>SELECT *</code>, but that’s inefficient—better to give a list of everything).</p>
+<ul>
+<li><p>We can see what column names are available for the User Dictionary in <a href="http://developer.android.com/reference/android/provider/UserDictionary.Words.html"><code>UserDictionary.Words</code></a>. Again, these are defined as constants!</p></li>
+<li><p>Be sure to always select the <code>_ID</code> primary key: it will be needed later!</p></li>
+</ul>
+<p>The other parameters can be used to customize the <code>SELECT</code> statement. The “selection” (<code>WHERE</code>) clause needs to parameters: the second are values that will be escaped against <a href="https://en.wikipedia.org/wiki/SQL_injection">SQL injection attacks</a>. Passing <code>null</code> for any of these parameters will cause the clause to be ignored:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">String[] projection = <span class="kw">new</span> String[] {
+    UserDictionary.<span class="fu">Words</span>.<span class="fu">WORD</span>,
+    UserDictionary.<span class="fu">Words</span>.<span class="fu">FREQUENCY</span>,
+    UserDictionary.<span class="fu">Words</span>.<span class="fu">_ID</span>
+};
+resolver.<span class="fu">query</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">CONTENT_URI</span>, projection, <span class="kw">null</span>, <span class="kw">null</span>, <span class="kw">null</span>);</code></pre></div>
+<p>So overall, the query is breaking apart the components SQL <code>SELECT</code> statement into different pieces as parameters to a method, so you don’t <em>quite</em> have to write the selection yourself. Moreover, this method <em>abstracts</em> the specific query language, allowing the same queries to be used on different formats of database (<code>SQLite</code>, <code>PostgreSQL</code>, files, etc).</p>
+</div>
+<div id="cursors" class="section level2">
+<h2><span class="header-section-number">9.2</span> Cursors</h2>
+<p>The <code>ContentResolver#query()</code> method returns a <a href="http://developer.android.com/reference/android/database/Cursor.html"><strong><code>Cursor</code></strong></a>. A <code>Cursor</code> provides an interface to the list of records in a database (e.g., those returned by the query). A <code>Cursor</code> also behaves like an <code>Iterator</code> in Java: it keeps track of which record is currently being accessed (e.g., what the <code>i</code> would be in a for loop). You can think of it as a “pointer” to a particular record, like the cursor on a screen.</p>
+<p>We call methods on the <code>Cursor</code> to specify which record we want it to “point” to, as well as to fetch values from the record object at that spot in the list. For example:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">cursor.<span class="fu">moveToFirst</span>(); <span class="co">//move to the first item</span>
+String field0 = cursor.<span class="fu">getString</span>(<span class="dv">0</span>); <span class="co">//get the first field (column you specified) as a String</span>
+String word = cursor.<span class="fu">getString</span>(cursor.<span class="fu">getColumnIndexOrThrow</span>(<span class="st">&quot;word&quot;</span>)); <span class="co">//get the &quot;word&quot; field as a String</span>
+cursor.<span class="fu">moveToNext</span>(); <span class="co">//go to the next item</span></code></pre></div>
+<p>The nice thing about <code>Cursors</code> though is that they can easily be fed into <code>AdapterViews</code> by using a <a href="http://developer.android.com/reference/android/widget/CursorAdapter.html"><code>CursorAdapter</code></a> (as opposed to the <code>ArrayAdapter</code> we’ve used previously). The <a href="http://developer.android.com/reference/android/widget/SimpleCursorAdapter.html"><strong><code>SimpleCursorAdapter</code></strong></a> is a concrete implementation that is almost as easy to use as an <code>ArrayAdapter</code>:</p>
+<p>You instantiate a new <code>SimpleCursorAdapter</code>, passing it:</p>
 <ol style="list-style-type: decimal">
-<li><p>The layout for the Fragment should contain the search <code>EditText</code> and <code>Button</code> <em>taken from</em> the <code>activity_main</code> layout. You can add some <code>layout_gravity</code> to center the inputs. You should also remove the <code>onClick</code> XML attribute, as click handling will be specified in the Java.</p></li>
-<li><p>In the <code>SearchFragment</code> class, be sure to define a <code>newInstance()</code> factory method. The method doesn’t need to take any arguments (and thus you don’t need to specify an argument bundle).</p>
-<ul>
-<li>Typing <code>newInstance</code> will allow Android Studio to tab-complete the method!</li>
-</ul></li>
-<li><p>The <code>SearchFragment</code> will need to communicate with other Fragments, and thus you will need to define an <code>interface</code> (e.g., <code>OnSearchListener</code>) that the containing Activity can implement. This interface should support a single public method (e.g., <code>onSearchSubmitted(String searchTerm)</code>) which will allow the Fragment to pass the entered search term to the Activity.</p>
-<ul>
-<li>Remember to check that the containing Activity implements the interface in the Fragment’s <code>onAttach()</code> callback.</li>
-</ul></li>
-<li><p>Finally, in the <code>onCreateView()</code> callback, add a click listener to the button so that when it is clicked, it calls the <code>onSeachSubmitted()</code> callback function on the containing Activity (which you’ve established has that method!)</p>
-<ul>
-<li>Remember that you can call <code>findViewById()</code> on the <em>root view</em>.</li>
-</ul></li>
+<li>A <code>Context</code> for loading resources</li>
+<li>A layout resource to inflate for each record</li>
+<li>A <code>Cursor</code> (which can be <code>null</code>)</li>
+<li>An array of column names to fetch from each entry in the Cursor (the <strong>projection</strong>, similar to before)</li>
+<li>A matching list of View resource <code>ids</code> (which should all be <code>TextViews</code>) to assign each column’s value to. This is the “mapping” that the Adapter will perform (from projection columns to TextView contents).</li>
+<li>Any additional option flags (<code>0</code> means no flags, and is the correct option for us).</li>
 </ol>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">adapter = <span class="kw">new</span> <span class="fu">SimpleCursorAdapter</span>(
+                <span class="kw">this</span>,
+                R.<span class="fu">layout</span>.<span class="fu">list_item_layout</span>, <span class="co">//item to inflate</span>
+                cursor, <span class="co">//cursor to show</span>
+                <span class="kw">new</span> String[] {UserDictionary.<span class="fu">Words</span>.<span class="fu">WORD</span>, UserDictionary.<span class="fu">Words</span>.<span class="fu">FREQUENCY</span>}, <span class="co">//fields to display</span>
+                <span class="kw">new</span> <span class="dt">int</span>[] {R.<span class="fu">id</span>.<span class="fu">txt_list_item</span>, R.<span class="fu">id</span>.<span class="fu">txt_item_freq</span>},                       <span class="co">//where to display them</span>
+                <span class="dv">0</span>); <span class="co">//flags</span></code></pre></div>
+<p>Then we can use this adapter for the ListView in place of the <code>ArrayAdapter</code>!</p>
 </div>
-<div id="add-the-viewpager-and-adapter" class="section level2">
-<h2><span class="header-section-number">14.2</span> Add the ViewPager and Adapter</h2>
-<p>Your <code>MainActivity</code> will need to contain a <a href="https://developer.android.com/reference/android/support/v4/view/ViewPager.html"><code>ViewPager</code></a> View (since all the other Views have been moved to Fragments!).</p>
-<p>Add a <code>android.support.v4.view.ViewPager</code> element in the <code>activity_main.xml</code> layout resource, finding this View in the Activity’s <code>onCreate()</code> callback. This will replace the previous <code>FrameLayout</code> that was used as a container.</p>
-<p>Just like with a <code>ListView</code>, a <code>ViewPager</code> requires a (custom) <strong>adapter</strong> in order to map from which “page” is shown to the Fragment that is rendered. Add a new inner class (e.g., <code>MoviePagerAdapter</code>) that subclasses <a href="https://developer.android.com/reference/android/support/v4/app/FragmentStatePagerAdapter.html"><code>FragmentStatePagerAdapter</code></a>.</p>
+<div id="loaders" class="section level2">
+<h2><span class="header-section-number">9.3</span> Loaders</h2>
+<p>In order to get the <code>Cursor</code> to pass into the adapter, we need to <code>.query()</code> the database. But we want to do this a lot in fact, every time the database updates, we’d like to be able to query it again so we can update the Adapter and have the changes show up! Additionally, accessing a database can be <em>slow</em> (it requires disk access, structuring and submitting SQL calls, and depending on the complexity of the database those queries can take time). Thus, as with network requests, we’d like to perform this query on a <em>background thread</em> so that it doesn’t block our application and cause it to stall.</p>
+<p>In order to automatically update your list with new data loaded on a background thread, we’re going to use a class called a <a href="https://developer.android.com/guide/components/loaders.html"><code>Loader</code></a>. This is basically a wrapper around <a href="https://developer.android.com/reference/android/os/AsyncTask.html"><code>ASyncTask</code></a> (described in a later chapter), but one that lets you execute a background task repeatedly <em>whenever the data source changes</em>. In particular, Android provides a <a href="http://developer.android.com/reference/android/content/CursorLoader.html"><code>CursorLoader</code></a> specifically used to load data from ContentProviders through Cursors—whenever the content changes, a new Cursor is produced which can be “swapped” into the adapter.</p>
+<p>To use a <code>CursorLoader</code>, we need to specify that our Activity implements the <a href="https://developer.android.com/reference/android/support/v4/app/LoaderManager.LoaderCallbacks.html"><code>LoaderManager.LoaderCallbacks&lt;Cursor&gt;</code></a> interface—basically saying that this fragment can react to Loader events.</p>
+<!-- - Loaders need to work with Fragments, unless the Activity subclasses [`FragmentActivity`](https://developer.android.com/reference/android/support/v4/app/FragmentActivity.html) (as `AppCompatActivity` does) and thereby provides the "Fragment" capabilities needed to use a `Loader`. So we can use Loaders in _our_ Activities or Fragments. -->
+<p>We will need to fill in the interfaces callback functions in order to use the <code>CursorLoader</code>:</p>
 <ul>
-<li><p>As in the <a href="https://developer.android.com/training/animation/screen-slide.html#viewpager">documentation example</a>, You will need to provide a constructor that takes in a (Support) <code>FragmentManager</code>, and calls the appropriate super constructor.</p></li>
-<li>The <code>getItem()</code> function returns <em>which</em> Fragment is shown for a particular page number. You should implement this function so that page 0 shows a <code>SearchFragment</code>, page 1 shows a <code>MovieListFragment</code>, and page 2 shows a <code>DetailsFragment</code>.
-<ul>
-<li>You can declare each of these three Fragments as <strong>instance variables</strong>, then simply return them from this method.</li>
-<li>It’s okay to “hard-code” this logic for the purposes of this demonstration.</li>
-</ul></li>
-<li><p>The <code>getCount()</code> function returns how many pages the Pager supports. Note that you will need to include some logic for this: before a search has occurred, there is only one page! After the search, there are two pages (the search and the results), and after a result option is selected there are three pages (the search, the results, and the details).</p></li>
-<li><p>Finally, we will be “replacing” Fragments inside the Pager as the user interacts with the app (e.g., changing the <code>MovieListFragment</code> to one with different search results)—such as by changing the objects that the instance variables refer to. However, the ViewPager “preloads” adjacent Fragment pages as an optimization technique; thus it “caches” the Fragments and won’t actually load any updated Views.</p>
-<p>As a work-around, override the <code>getItemPosition()</code> function (which is called whenever the Pager needs to determine if an item’s position has changed):</p>
-<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="kw">public</span> <span class="dt">int</span> <span class="fu">getItemPosition</span>(Object object) {
-    <span class="kw">return</span> POSITION_NONE;
-}</code></pre></div>
-<p>Note that this is a memory-intensive workaround (but works for demonstration purposes); for a cleaner solution, see <a href="http://stackoverflow.com/questions/7263291/viewpager-pageradapter-not-updating-the-view/8024557#8024557">this discussion</a>.</p></li>
+<li><p>In <code>onCreateLoader()</code> we specify what the Loader should <em>do</em>. Here we will instantiate and return a <a href="https://developer.android.com/reference/android/content/CursorLoader.html#CursorLoader(android.content.Context, android.net.Uri, java.lang.String[], java.lang.String, java.lang.String[], java.lang.String)"><code>new CursorLoader(...)</code></a> that queries the <code>ContentProvider</code>. This looks a lot like the <code>.query()</code> method we wrote earlier, but will run on a background thread!</p>
+<!-- Note that the callback is also passed an `int id`, which is used to refer to _which_ loader we want to create. This allows you to have multiple loaders (e.g., for multiple lists!) in a single application. --></li>
+<li><p>In the <code>onLoadFinished()</code> callback, we can use <code>swapCursor()</code> to swap passed in <code>Cursor</code> into our <code>SimpleCursorAdapter</code> in order to feed that model data into our controller (for display in the view). The framework handles any cleanup around the old Cursor.</p>
+<!-- You can call `loader.getId()` to determine which loader finished loading, if you need to determine what adapter to swap into. --></li>
+<li><p>In the <code>onLoaderReset()</code> callback, we can just swap in <code>null</code> for our Cursor, since there now is no content to show (the loaded data has been “reset”).</p></li>
 </ul>
-<p>Once you’ve defined the your adapter, instantiate it in the Activity’s <code>onCreate()</code> callback, and use <code>ViewPager#setAdapter()</code> to specify the Pager’s adapter.</p>
-<p>If you also instantiate a <code>SearchFragment</code> in the <code>onCreate()</code> callback, then you should be able to run the application and see that Fragment appear as a page (though there is nothing else to swipe to yet).</p>
+<p>Finally, in order to actually <em>start</em> our background loading, we’ll use the <code>getLoaderManager().initLoader(...)</code> method. This will cause the Android framework to request the creation of a new Loader (by our <code>onCreateLoader()</code> method), as well as start that Loader loading! (This uses a manager similar to <code>FragmentManager</code>, and is similar in flavor to <code>AsyncTask.execute()</code>).</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java"><span class="fu">getSupportLoaderManager</span>().<span class="fu">initLoader</span>(<span class="dv">0</span>, <span class="kw">null</span>, <span class="kw">this</span>);</code></pre></div>
+<ul>
+<li>Use <code>getSupportLoaderManager()</code> if you’re using the support library (and calling from an Activity; a support library Fragment like we’ve been using only has the one manager, so you can just use <code>getLoaderManager()</code>).</li>
+</ul>
+<p>The first parameter to the <code>initLoader()</code> method is an id number for <em>which cursor you want to load</em>—what is passed in as the first param to <code>onCreateLoader()</code> (or is accessible via <code>Loader#getId()</code>). This allows you to have multiple Loaders using the same callback function (e.g., to handle multiple Loaders for multiple data sources). The second param is a <code>Bundle</code> of args, and the third is the <code>LoaderCallbacks</code> (e.g., who handles the results)!</p>
+<ul>
+<li>Note that you can use the <code>.restartLoader()</code> method to “recreate” the <code>CursorLoader</code> (without losing other references), such as if you want to change the arguments passed to it.</li>
+</ul>
+<p>And with that, we can fetch the words from our database on a background thread—and if we update the words (e.g., through the Language Settings) it will automatically update!</p>
 </div>
-<div id="add-user-interaction" class="section level2">
-<h2><span class="header-section-number">14.3</span> Add User Interaction</h2>
-<p>Finally, you will need to adjust the Fragment callback methods inside the Activity (e.g., <code>onSearchSubmitted()</code> and <code>onMovieSelected()</code>) so that they interact with the ViewPager. This will involve removing previous code (the ViewPager does not need to utilize FragmentTransactions).</p>
-<p>When the search term is submitted from the <code>SearchFragment</code>, your Activity should instantiate a new (potentially different) <code>MovieListFragment</code> result list for that search term. The PagerAdapter should return an appropriate page count depending on whether a result list has been instantiated or not.</p>
+<div id="other-provider-actions" class="section level2">
+<h2><span class="header-section-number">9.4</span> Other Provider Actions</h2>
+<p>The Content Resolver of course allows us to do more than just query and load the data: we can also add, update, or remove entries from the database.</p>
 <ul>
-<li>However, simply creating a different Fragment will not cause the Adapter to change—you need to let the Adapter know that the <em>model</em> it is adapting into a <em>view</em> has changed! You can do this by calling the <code>notifyDataSetChanged()</code> method on the adapter.</li>
+<li><p>If we want to <em>modify</em> the contents of the User Dictionary, we will need permission:</p>
+<div class="sourceCode"><pre class="sourceCode xml"><code class="sourceCode xml"><span class="kw">&lt;uses-permission</span><span class="ot"> android:name=</span><span class="st">&quot;android.permission.WRITE_USER_DICTIONARY&quot;</span><span class="kw">/&gt;</span></code></pre></div></li>
 </ul>
-<p>After you’ve modified (and notified!) the Adapter, you can change which page is displayed using the <a href="https://developer.android.com/reference/android/support/v4/view/ViewPager.html#setCurrentItem(int)"><code>ViewPager#setCurrentItem()</code></a> method. This will let you take the user to the “results” page!</p>
-<p>Similarly, modify the movie selection callback so that when a movie is selected from the list, your Activity instantiates a new (potentially different) <code>DetailFragment</code>. Remember to notify the adapter that the data set has changed, and to change which page is currently shown.</p>
+<p>To <em>insert</em> (create) a new Word into the ContentProvider, we call the <code>.insert()</code> method on the <code>ContentResolver</code>. It is passed a <a href="http://developer.android.com/reference/android/content/ContentValues.html"><code>ContentValues</code></a> object, which is a HashMap almost exactly like a <code>Bundle</code> (but it only supports values that can be entered into Content Providers, e.g., no Parcelables).</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">ContentValues newValues = <span class="kw">new</span> <span class="fu">ContentValues</span>();
+newValues.<span class="fu">put</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">WORD</span>, inputText.<span class="fu">getText</span>().<span class="fu">toString</span>());
+newValues.<span class="fu">put</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">FREQUENCY</span>, <span class="dv">100</span>);
+newValues.<span class="fu">put</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">APP_ID</span>, <span class="st">&quot;edu.uw.loaderdemo&quot;</span>);
+newValues.<span class="fu">put</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">LOCALE</span>, <span class="st">&quot;en_US&quot;</span>);
+
+Uri newUri = <span class="fu">getContentResolver</span>().<span class="fu">insert</span>(
+       UserDictionary.<span class="fu">Words</span>.<span class="fu">CONTENT_URI</span>,   <span class="co">// the user dictionary content URI!</span>
+       newValues                   <span class="co">// the values to insert</span>
+);</code></pre></div>
 <ul>
-<li>This will replace the previous behavior of the callback.</li>
+<li>The <code>insert()</code> function returns the URI for the <em>newly inserted row</em>, e.g. if you want to be able to query and display that content later.</li>
 </ul>
-<p>Once you’ve made these changes, you should be able to search for movies, see the results, and view the details for movies. Swipe left and right to navigate between pages!</p>
-<!-- Remember to `commit` and `push` your changes to GitHub and submit this lab once completed. -->
+<p>A similar approach is used to <em>update</em> and modify an entry in the Content Provider: call the <code>.update()</code> method and pass in a <code>ContentValues</code> bundle of values to change:</p>
+<div class="sourceCode"><pre class="sourceCode java"><code class="sourceCode java">ContentValues newValues = <span class="kw">new</span> <span class="fu">ContentValues</span>();
+newValues.<span class="fu">put</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">FREQUENCY</span>, newFrequency);
+
+<span class="fu">getContentResolver</span>().<span class="fu">update</span>(
+          ContentUris.<span class="fu">withAppendedId</span>(UserDictionary.<span class="fu">Words</span>.<span class="fu">CONTENT_URI</span>, id),
+          newValues,
+          <span class="kw">null</span>, <span class="kw">null</span>); <span class="co">//no selection</span></code></pre></div>
+<ul>
+<li>Note that we make sure to update only that particular item by specifying the <em>URI of that item</em>. We do this by constructing a new URI representing/identifying that item, effectively by appending <code>&quot;/:id&quot;</code> to the URI. This means that we don’t need to use the selection criteria (though we could do that as well).</li>
+</ul>
+<p>That covers how to utilize and interact with a Content Provider (as a <em>client</em> of that Provider). <a href="databases.html#databases">A later lecture</a> will cover how to implement a Provider for a custom database.</p>
 
 </div>
+</div>
+<div class="footnotes">
+<hr />
+<ol start="36">
+<li id="fn36"><p><a href="https://developer.android.com/guide/topics/providers/content-providers.html" class="uri">https://developer.android.com/guide/topics/providers/content-providers.html</a><a href="loaders.html#fnref36">↩</a></p></li>
+</ol>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="styles-themes.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-<a href="bluetooth.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="notifications-settings.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="files-and-permissions.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
@@ -431,7 +506,7 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": "https://github.com/info448/book/edit/master/viewpager.Rmd",
+"link": "https://github.com/info448/book/edit/master/loaders.Rmd",
 "text": "Edit"
 },
 "download": ["android-development.pdf", "android-development.epub"],
